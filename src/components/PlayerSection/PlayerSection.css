@@ -1,0 +1,23 @@
+.player-section {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg);
+  padding: var(--space-2xl) var(--space-md);
+  transition: background-color var(--transition-normal);
+}
+
+.player-section__container {
+  width: 100%;
+  max-width: var(--player-max-width);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .player-section {
+    padding: var(--space-xl) var(--space-sm);
+    align-items: flex-start; /* Don't vertically center on mobile */
+    padding-top: calc(var(--space-xl) + 60px); /* Account for sticky header */
+  }
+}

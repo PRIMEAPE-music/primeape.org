@@ -1,0 +1,76 @@
+.progress-bar {
+  width: 100%;
+  padding: var(--space-sm) 0;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+}
+
+.progress-bar:focus {
+  outline: none;
+}
+
+.progress-bar:focus-visible .progress-bar__track {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+.progress-bar__track {
+  position: relative;
+  width: 100%;
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  transition: height var(--transition-fast);
+}
+
+.progress-bar:hover .progress-bar__track,
+.progress-bar--dragging .progress-bar__track {
+  height: 6px;
+}
+
+.progress-bar__fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-hover)
+  );
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+.progress-bar__thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-active);
+  border-radius: var(--radius-full);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.3);
+}
+
+.progress-bar:hover .progress-bar__thumb,
+.progress-bar--dragging .progress-bar__thumb {
+  opacity: 1;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .progress-bar__track {
+    height: 6px; /* Slightly larger for easier touch targeting */
+  }
+
+  .progress-bar__thumb {
+    width: 14px;
+    height: 14px;
+  }
+}

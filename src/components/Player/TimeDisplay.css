@@ -1,0 +1,30 @@
+.time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+
+.time-display__current {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.time-display__divider {
+  opacity: 0.5;
+}
+
+.time-display__duration {
+  color: var(--color-text-secondary);
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .time-display {
+    font-size: var(--font-size-xs);
+  }
+}

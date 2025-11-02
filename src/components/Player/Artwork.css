@@ -1,0 +1,71 @@
+.artwork {
+  width: 100%;
+  max-width: var(--artwork-size-desktop);
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+.artwork__container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-border);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--transition-normal),
+              box-shadow var(--transition-normal);
+}
+
+.artwork--playing .artwork__container {
+  animation: subtle-pulse 4s ease-in-out infinite;
+}
+
+@keyframes subtle-pulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-lg);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-xl);
+  }
+}
+
+.artwork__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Fallback for missing image */
+.artwork__container--no-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--color-border),
+    var(--color-accent)
+  );
+}
+
+.artwork__container--no-image::after {
+  content: 'PRIMEAPE\AFOUNDATION';
+  white-space: pre;
+  text-align: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  opacity: 0.5;
+  letter-spacing: 0.1em;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .artwork {
+    max-width: var(--artwork-size-mobile);
+    padding: var(--space-sm);
+  }
+}

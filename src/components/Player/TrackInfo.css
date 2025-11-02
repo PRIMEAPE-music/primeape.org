@@ -1,0 +1,59 @@
+.track-info {
+  text-align: center;
+  padding: var(--space-md) 0;
+}
+
+.track-info__track-number {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: var(--space-xs);
+}
+
+.track-info__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+  line-height: 1.2;
+}
+
+.track-info__artist {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Error states */
+.track-info--error {
+  padding: var(--space-lg) var(--space-md);
+}
+
+.track-info__error-message {
+  font-size: var(--font-size-md);
+  color: #ef4444; /* Error red - only hardcoded color allowed */
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--space-xs);
+}
+
+.track-info__error-hint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  opacity: 0.8;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .track-info {
+    padding: var(--space-sm) 0;
+  }
+
+  .track-info__title {
+    font-size: var(--font-size-xl);
+  }
+
+  .track-info__artist {
+    font-size: var(--font-size-md);
+  }
+}
