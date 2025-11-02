@@ -1,0 +1,32 @@
+.footer {
+  background-color: var(--color-bg);
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-lg) var(--space-md);
+  transition:
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.footer__container {
+  max-width: var(--player-max-width);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer__copyright {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.footer__credits {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .footer {
+    padding: var(--space-md) var(--space-sm);
+  }
+}
