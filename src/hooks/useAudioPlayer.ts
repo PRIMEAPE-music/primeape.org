@@ -52,7 +52,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     // Create AudioContext on mount (will be used in Phase 3)
     // Only create once per session
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioContextRef.current = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
 
     // Connect audio element to context when ref is available
@@ -273,11 +273,26 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
 
   // ========== LOAD FIRST TRACK ON MOUNT ==========
   useEffect(() => {
-    if (currentTrackId) {
-      loadTrack(currentTrackId);
-    }
-  }, []); // Only on mount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Load initial track only once on mount
+    const initialTrackId = 1;
+    const track = getTrackById(initialTrackId);
+    if (!track || !audioRef.current) return;
+    
+    // Determine which file to load based on initial audioVersion
+    const fileToLoad = track.instrumentalFile; // Always start with instrumental
+    
+    setPlaybackState('loading');
+    setError(null);
+    setCurrentTrackId(initialTrackId);
+    
+    // Set audio source
+    const audio = audioRef.current;
+    audio.src = fileToLoad;
+    audio.load();
+    
+    // Note: Don't call play() here - let user click play button
+    // This prevents autoplay policy violations
+  }, []); // Truly empty - runs once on mount with no external dependencies
 
   // ========== RETURN API ==========
   return {

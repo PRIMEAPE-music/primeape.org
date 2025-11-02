@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import './ProgressBar.css';
 
 interface ProgressBarProps {
@@ -59,13 +59,22 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   /**
    * Handle mouse/touch move - continue dragging
    */
-  const handlePointerMove = (e: MouseEvent | TouchEvent) => {
+  const handlePointerMove = useCallback((e: MouseEvent | TouchEvent) => {
     if (!isDragging) return;
 
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const newTime = calculateTimeFromPosition(clientX);
+    
+    // Calculate time inline to avoid dependency on calculateTimeFromPosition
+    const bar = progressBarRef.current;
+    if (!bar) return;
+
+    const rect = bar.getBoundingClientRect();
+    const offsetX = clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, offsetX / rect.width));
+    const newTime = percentage * duration;
+    
     onSeek(newTime);
-  };
+  }, [isDragging, duration, onSeek]);
 
   /**
    * Handle mouse/touch up - stop dragging
@@ -98,8 +107,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
       document.removeEventListener('mouseup', handleUp);
       document.removeEventListener('touchend', handleUp);
     };
-  }, [isDragging]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDragging, handlePointerMove]);
 
   return (
     <div

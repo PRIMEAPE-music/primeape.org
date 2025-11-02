@@ -62,7 +62,7 @@ src/
 ## Phase Progress
 
 - [x] Phase 1: Project Foundation & Core Setup
-- [ ] Phase 2: Core Audio Player - Basic Playback
+- [x] Phase 2: Core Audio Player - Basic Playback
 - [ ] Phase 3: Advanced Player Features
 - [ ] Phase 4: Lyrics System
 - [ ] Phase 5: Tracklist & Navigation
