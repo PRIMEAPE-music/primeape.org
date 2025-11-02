@@ -19,3 +19,17 @@
 .player audio {
   display: none;
 }
+
+.player__secondary-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+}
+
+.player__version-row {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-sm) 0;
+}

@@ -1,9 +1,13 @@
 import React from 'react';
 import { FOUNDATION_ALBUM } from '@/data/album';
+import Equalizer from './Equalizer';
 import './Artwork.css';
 
 interface ArtworkProps {
   isPlaying: boolean;
+  audioContext: AudioContext | null;
+  sourceNode: MediaElementAudioSourceNode | null;
+  showEqualizer: boolean;
 }
 
 /**
@@ -16,7 +20,12 @@ interface ArtworkProps {
  * 
  * @param isPlaying - Whether audio is currently playing
  */
-const Artwork: React.FC<ArtworkProps> = ({ isPlaying }) => {
+const Artwork: React.FC<ArtworkProps> = ({ 
+  isPlaying,
+  audioContext,
+  sourceNode,
+  showEqualizer
+}) => {
   return (
     <div className={`artwork ${isPlaying ? 'artwork--playing' : ''}`}>
       <div className="artwork__container">
@@ -31,7 +40,14 @@ const Artwork: React.FC<ArtworkProps> = ({ isPlaying }) => {
             target.parentElement!.classList.add('artwork__container--no-image');
           }}
         />
-        {/* Equalizer will be added here in Phase 3 */}
+        
+        {/* Equalizer Overlay */}
+        <Equalizer
+          audioContext={audioContext}
+          sourceNode={sourceNode}
+          isPlaying={isPlaying}
+          isVisible={showEqualizer}
+        />
       </div>
     </div>
   );

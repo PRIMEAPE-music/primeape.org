@@ -1,0 +1,60 @@
+.shuffle-button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: var(--space-xs);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.shuffle-button:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-border);
+}
+
+.shuffle-button:active {
+  transform: scale(0.95);
+}
+
+.shuffle-button:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+/* Active state */
+.shuffle-button--active {
+  color: var(--color-active);
+}
+
+.shuffle-button--active:hover {
+  color: var(--color-hover);
+  background-color: var(--color-border);
+}
+
+/* Dot indicator for active state */
+.shuffle-button--active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: var(--color-active);
+  border-radius: var(--radius-full);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .shuffle-button {
+    width: 40px;
+    height: 40px;
+  }
+}

@@ -1,0 +1,48 @@
+.equalizer-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: var(--space-xs);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.equalizer-toggle:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-border);
+}
+
+.equalizer-toggle:active {
+  transform: scale(0.95);
+}
+
+.equalizer-toggle:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+.equalizer-toggle--active {
+  color: var(--color-active);
+}
+
+.equalizer-toggle--active:hover {
+  color: var(--color-hover);
+}
+
+.equalizer-toggle--active::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: var(--color-active);
+  border-radius: var(--radius-full);
+}

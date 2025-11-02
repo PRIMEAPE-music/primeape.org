@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { PlaybackState, AudioVersion } from '@/types';
-import { getTrackById, getNextTrackId, getPreviousTrackId } from '@/data/album';
+import type { PlaybackState, AudioVersion, RepeatMode } from '@/types';
+import { getTrackById, getNextTrackId, getPreviousTrackId, FOUNDATION_ALBUM } from '@/data/album';
+import { shuffleArray, getNextShuffledItem, getPreviousShuffledItem } from '@/utils/shuffleArray';
 
 interface UseAudioPlayerReturn {
   // State
@@ -9,6 +10,10 @@ interface UseAudioPlayerReturn {
   currentTime: number;
   duration: number;
   audioVersion: AudioVersion;
+  volume: number;
+  isMuted: boolean;
+  isShuffled: boolean;
+  repeatMode: RepeatMode;
   error: string | null;
   
   // Actions
@@ -20,9 +25,15 @@ interface UseAudioPlayerReturn {
   prevTrack: () => void;
   seek: (time: number) => void;
   toggleVersion: () => void;
+  setVolume: (volume: number) => void;
+  toggleMute: () => void;
+  toggleShuffle: () => void;
+  toggleRepeat: () => void;
   
   // Refs
   audioRef: React.RefObject<HTMLAudioElement>;
+  audioContext: AudioContext | null;
+  sourceNode: MediaElementAudioSourceNode | null;
 }
 
 /**
@@ -41,30 +52,78 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
   const [duration, setDuration] = useState(0);
   const [audioVersion, setAudioVersion] = useState<AudioVersion>('instrumental');
   const [error, setError] = useState<string | null>(null);
+  const [volume, setVolumeState] = useState(0.7); // Default 70%
+  const [isMuted, setIsMuted] = useState(false);
+  const previousVolumeRef = useRef(0.7);
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('off');
+  const shuffledQueueRef = useRef<number[]>([]);
 
   // ========== REFS ==========
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const [audioContext, setAudioContext] = useState<AudioContext | null>(null);
+  const [sourceNode, setSourceNode] = useState<MediaElementAudioSourceNode | null>(null);
 
-  // ========== INITIALIZE AUDIO CONTEXT (for Phase 3 equalizer) ==========
+  // ========== LOAD PREFERENCES FROM LOCALSTORAGE ==========
   useEffect(() => {
-    // Create AudioContext on mount (will be used in Phase 3)
-    // Only create once per session
+    const savedVolume = localStorage.getItem('primeape_volume');
+    const savedMuted = localStorage.getItem('primeape_muted');
+    const savedShuffle = localStorage.getItem('primeape_shuffle');
+    const savedRepeat = localStorage.getItem('primeape_repeat');
+    
+    if (savedVolume) {
+      const vol = parseFloat(savedVolume);
+      if (!isNaN(vol) && vol >= 0 && vol <= 1) {
+        setVolumeState(vol);
+        previousVolumeRef.current = vol;
+      }
+    }
+    
+    if (savedMuted === 'true') {
+      setIsMuted(true);
+    }
+
+    if (savedShuffle === 'true') {
+      setIsShuffled(true);
+      // Initialize shuffled queue
+      const allTrackIds = FOUNDATION_ALBUM.tracks.map(t => t.id);
+      shuffledQueueRef.current = shuffleArray(allTrackIds);
+    }
+
+    if (savedRepeat && (savedRepeat === 'off' || savedRepeat === 'all' || savedRepeat === 'one')) {
+      setRepeatMode(savedRepeat as RepeatMode);
+    }
+  }, []);
+
+  // ========== APPLY VOLUME TO AUDIO ELEMENT ==========
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = isMuted ? 0 : volume;
+  }, [volume, isMuted]);
+
+  // ========== INITIALIZE AUDIO CONTEXT (for equalizer) ==========
+  useEffect(() => {
+    // Create AudioContext on mount
     if (!audioContextRef.current) {
-      audioContextRef.current = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      const ctx = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      audioContextRef.current = ctx;
+      setAudioContext(ctx);
     }
 
     // Connect audio element to context when ref is available
     if (audioRef.current && audioContextRef.current && !sourceNodeRef.current) {
-      sourceNodeRef.current = audioContextRef.current.createMediaElementSource(audioRef.current);
-      sourceNodeRef.current.connect(audioContextRef.current.destination);
+      const source = audioContextRef.current.createMediaElementSource(audioRef.current);
+      source.connect(audioContextRef.current.destination);
+      sourceNodeRef.current = source;
+      setSourceNode(source);
     }
 
-    // Cleanup
     return () => {
-      // Don't close AudioContext here - keep it alive for entire session
-      // Will be used for equalizer in Phase 3
+      // Keep AudioContext alive for entire session
     };
   }, []);
 
@@ -139,15 +198,30 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
   const nextTrack = useCallback(() => {
     if (currentTrackId === null) return;
     
-    const nextId = getNextTrackId(currentTrackId);
+    let nextId: number;
+
+    if (isShuffled) {
+      // Get next from shuffled queue
+      const allTrackIds = FOUNDATION_ALBUM.tracks.map(t => t.id);
+      const { nextItem, newQueue } = getNextShuffledItem(
+        currentTrackId,
+        allTrackIds,
+        shuffledQueueRef.current
+      );
+      shuffledQueueRef.current = newQueue;
+      nextId = nextItem;
+    } else {
+      // Normal sequential order
+      nextId = getNextTrackId(currentTrackId);
+    }
+
     loadTrack(nextId);
     
     // Auto-play next track if currently playing
     if (playbackState === 'playing') {
-      // Small delay to ensure track loads
       setTimeout(() => play(), 100);
     }
-  }, [currentTrackId, playbackState, loadTrack, play]);
+  }, [currentTrackId, playbackState, isShuffled, loadTrack, play]);
 
   // ========== PREVIOUS TRACK ==========
   const prevTrack = useCallback(() => {
@@ -156,19 +230,28 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     const audio = audioRef.current;
     
     // If more than 3 seconds into song, restart current track
-    // Otherwise, go to previous track
     if (audio && audio.currentTime > 3) {
       audio.currentTime = 0;
-    } else {
-      const prevId = getPreviousTrackId(currentTrackId);
-      loadTrack(prevId);
-      
-      // Auto-play previous track if currently playing
-      if (playbackState === 'playing') {
-        setTimeout(() => play(), 100);
-      }
+      return;
     }
-  }, [currentTrackId, playbackState, loadTrack, play]);
+
+    let prevId: number;
+
+    if (isShuffled) {
+      // Get previous from shuffled queue
+      prevId = getPreviousShuffledItem(currentTrackId, shuffledQueueRef.current);
+    } else {
+      // Normal sequential order
+      prevId = getPreviousTrackId(currentTrackId);
+    }
+
+    loadTrack(prevId);
+    
+    // Auto-play previous track if currently playing
+    if (playbackState === 'playing') {
+      setTimeout(() => play(), 100);
+    }
+  }, [currentTrackId, playbackState, isShuffled, loadTrack, play]);
 
   // ========== SEEK ==========
   const seek = useCallback((time: number) => {
@@ -180,6 +263,77 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     audio.currentTime = clampedTime;
     setCurrentTime(clampedTime);
   }, []);
+
+  // ========== SET VOLUME ==========
+  const setVolume = useCallback((newVolume: number) => {
+    // Clamp volume between 0 and 1
+    const clampedVolume = Math.max(0, Math.min(1, newVolume));
+    
+    setVolumeState(clampedVolume);
+    previousVolumeRef.current = clampedVolume;
+    
+    // Save to localStorage
+    localStorage.setItem('primeape_volume', clampedVolume.toString());
+    
+    // Unmute if volume is changed while muted
+    if (isMuted && clampedVolume > 0) {
+      setIsMuted(false);
+      localStorage.setItem('primeape_muted', 'false');
+    }
+  }, [isMuted]);
+
+  // ========== TOGGLE SHUFFLE ==========
+  const toggleShuffle = useCallback(() => {
+    const newShuffleState = !isShuffled;
+    setIsShuffled(newShuffleState);
+    
+    // Save to localStorage
+    localStorage.setItem('primeape_shuffle', newShuffleState.toString());
+    
+    if (newShuffleState) {
+      // Create shuffled queue when enabling shuffle
+      const allTrackIds = FOUNDATION_ALBUM.tracks.map(t => t.id);
+      shuffledQueueRef.current = shuffleArray(allTrackIds);
+    } else {
+      // Clear shuffle queue when disabling
+      shuffledQueueRef.current = [];
+    }
+  }, [isShuffled]);
+
+  // ========== TOGGLE REPEAT ==========
+  const toggleRepeat = useCallback(() => {
+    // Cycle through: off → all → one → off
+    let newRepeatMode: RepeatMode;
+    
+    if (repeatMode === 'off') {
+      newRepeatMode = 'all';
+    } else if (repeatMode === 'all') {
+      newRepeatMode = 'one';
+    } else {
+      newRepeatMode = 'off';
+    }
+    
+    setRepeatMode(newRepeatMode);
+    
+    // Save to localStorage
+    localStorage.setItem('primeape_repeat', newRepeatMode);
+  }, [repeatMode]);
+
+  // ========== TOGGLE MUTE ==========
+  const toggleMute = useCallback(() => {
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
+    
+    // Save to localStorage
+    localStorage.setItem('primeape_muted', newMutedState.toString());
+    
+    // If unmuting and volume is 0, restore previous volume
+    if (!newMutedState && volume === 0) {
+      const restoreVolume = previousVolumeRef.current > 0 ? previousVolumeRef.current : 0.7;
+      setVolumeState(restoreVolume);
+      localStorage.setItem('primeape_volume', restoreVolume.toString());
+    }
+  }, [isMuted, volume]);
 
   // ========== TOGGLE VERSION (Vocal/Instrumental) ==========
   const toggleVersion = useCallback(() => {
@@ -242,9 +396,27 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
 
     // Track ended
     const handleEnded = () => {
-      setPlaybackState('paused');
-      // Auto-advance to next track
-      nextTrack();
+      if (repeatMode === 'one') {
+        // Repeat current track
+        if (audio) {
+          audio.currentTime = 0;
+          play();
+        }
+      } else if (repeatMode === 'all' || repeatMode === 'off') {
+        // Advance to next track (will loop with 'all', stop at end with 'off')
+        setPlaybackState('paused');
+        
+        // Check if we're at the last track with repeat off
+        if (repeatMode === 'off' && !isShuffled) {
+          const isLastTrack = currentTrackId === FOUNDATION_ALBUM.tracks[FOUNDATION_ALBUM.tracks.length - 1].id;
+          if (isLastTrack) {
+            // Don't auto-advance, stop playback
+            return;
+          }
+        }
+        
+        nextTrack();
+      }
     };
 
     // Error handling
@@ -269,7 +441,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [nextTrack, playbackState]);
+  }, [nextTrack, playbackState, repeatMode, isShuffled, currentTrackId, play]);
 
   // ========== LOAD FIRST TRACK ON MOUNT ==========
   useEffect(() => {
@@ -302,6 +474,10 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     currentTime,
     duration,
     audioVersion,
+    volume,
+    isMuted,
+    isShuffled,
+    repeatMode,
     error,
     
     // Actions
@@ -313,8 +489,14 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     prevTrack,
     seek,
     toggleVersion,
+    setVolume,
+    toggleMute,
+    toggleShuffle,
+    toggleRepeat,
     
     // Refs
     audioRef,
+    audioContext,
+    sourceNode,
   };
 }

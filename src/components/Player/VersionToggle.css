@@ -1,0 +1,80 @@
+.version-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.version-toggle:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+  background-color: var(--color-border);
+}
+
+.version-toggle:active {
+  transform: scale(0.98);
+}
+
+.version-toggle:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+.version-toggle__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+}
+
+/* Vocal version styling */
+.version-toggle--vocal .version-toggle__icon {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+/* Instrumental version styling */
+.version-toggle--instrumental .version-toggle__icon {
+  background-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.version-toggle--instrumental:hover .version-toggle__icon {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}
+
+.version-toggle__label {
+  font-size: var(--font-size-xs);
+}
+
+/* Mobile: Hide label, show icon only */
+@media (max-width: 768px) {
+  .version-toggle {
+    padding: var(--space-xs);
+    min-width: 36px;
+  }
+
+  .version-toggle__label {
+    display: none;
+  }
+
+  .version-toggle__icon {
+    width: 24px;
+    height: 24px;
+  }
+}

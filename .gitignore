@@ -30,7 +30,6 @@ dist-ssr
 .env.production
 
 # Music files (too large for Git)
-public/music/**/*.mp3
 public/music/**/*.wav
 public/music/**/*.flac
 
