@@ -86,28 +86,40 @@ export function useLyricsSync(
 }
 
 /**
- * Smooth scroll element into view
- * Uses CSS smooth scrolling with fallback
+ * Smooth scroll element into view within its container
+ * Scrolls ONLY the container, not the entire page viewport
  * 
  * @param element - Element to scroll into view
- * @param container - Container element (optional)
+ * @param container - Container element that will be scrolled
  */
 export function smoothScrollToElement(
   element: HTMLElement,
-  _container?: HTMLElement | null
+  container?: HTMLElement | null
 ) {
-  // Modern browsers: use smooth scroll
-  if ('scrollBehavior' in document.documentElement.style) {
-    element.scrollIntoView({
-      behavior: 'smooth',
-      block: 'center',
-      inline: 'nearest',
-    });
-  } else {
-    // Fallback for older browsers
-    element.scrollIntoView({
-      block: 'center',
-      inline: 'nearest',
-    });
+  // If no container provided, find the closest scrollable parent
+  const scrollContainer = container || element.closest('.lyrics-panel__content, .lyrics-box') as HTMLElement;
+  
+  if (!scrollContainer) {
+    console.warn('No scroll container found for lyrics auto-scroll');
+    return;
   }
+
+  // Calculate the element's position relative to the container
+  const containerRect = scrollContainer.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  
+  // Calculate the offset needed to center the element in the container
+  const containerCenter = containerRect.height / 2;
+  const elementCenter = elementRect.height / 2;
+  const scrollOffset = elementRect.top - containerRect.top - containerCenter + elementCenter;
+  
+  // Get current scroll position
+  const currentScroll = scrollContainer.scrollTop;
+  const targetScroll = currentScroll + scrollOffset;
+
+  // Smooth scroll within the container only
+  scrollContainer.scrollTo({
+    top: targetScroll,
+    behavior: 'smooth'
+  });
 }

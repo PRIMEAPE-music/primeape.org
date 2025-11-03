@@ -28,6 +28,7 @@ const LyricsPanel: React.FC<LyricsPanelProps> = ({
   onLineClick,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null); // Add ref for scrollable content
   const isUserScrollingRef = useRef(false);
   const scrollTimeoutRef = useRef<number | null>(null);
 
@@ -59,11 +60,11 @@ const LyricsPanel: React.FC<LyricsPanelProps> = ({
   useEffect(() => {
     if (!isVisible || currentLineIndex === -1 || !isAutoScrollEnabled) return;
 
-    const panel = panelRef.current;
-    const currentLine = panel?.querySelector('.lyric-line--current') as HTMLElement;
+    const content = contentRef.current; // Use content ref instead of panel ref
+    const currentLine = content?.querySelector('.lyric-line--current') as HTMLElement;
 
-    if (panel && currentLine && !isUserScrollingRef.current) {
-      smoothScrollToElement(currentLine, panel);
+    if (content && currentLine && !isUserScrollingRef.current) {
+      smoothScrollToElement(currentLine, content); // Pass the scrollable container
     }
   }, [currentLineIndex, isVisible, isAutoScrollEnabled]);
 
@@ -101,7 +102,7 @@ const LyricsPanel: React.FC<LyricsPanelProps> = ({
         </div>
 
         {/* Lyrics content */}
-        <div className="lyrics-panel__content" onScroll={handleScroll}>
+        <div ref={contentRef} className="lyrics-panel__content" onScroll={handleScroll}>
           {lines.length === 0 ? (
             <p className="lyrics-panel__empty">No lyrics available</p>
           ) : (
