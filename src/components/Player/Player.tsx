@@ -115,23 +115,37 @@ const Player: React.FC = () => {
       {/* Hidden audio element */}
       <audio ref={audioRef} preload="metadata" />
 
-      {/* Track Information */}
-      <TrackInfo 
-        track={currentTrack} 
-        album={FOUNDATION_ALBUM}
-        trackIndex={trackIndex}
-        error={error} 
-      />
-
       {/* Player Main Area with Floating Boxes */}
       <div className="player__main-area">
-        {/* Album Artwork with Equalizer */}
-        <Artwork 
-          isPlaying={isPlaying}
-          audioContext={audioContext}
-          sourceNode={sourceNode}
-          showEqualizer={showEqualizer}
-        />
+        {/* Central Column: Artwork + Track Info + Time + Waveform */}
+        <div className="player__center-column">
+          {/* Album Artwork with Equalizer */}
+          <Artwork 
+            isPlaying={isPlaying}
+            audioContext={audioContext}
+            sourceNode={sourceNode}
+            showEqualizer={showEqualizer}
+          />
+
+          {/* Track Information */}
+          <TrackInfo 
+            track={currentTrack} 
+            album={FOUNDATION_ALBUM}
+            trackIndex={trackIndex}
+            error={error} 
+          />
+
+          {/* Time Display */}
+          <TimeDisplay currentTime={currentTime} duration={duration} />
+
+          {/* Waveform Progress Bar */}
+          <WaveformBar
+            audioUrl={currentTrack ? (audioVersion === 'vocal' && currentTrack.hasVocals ? currentTrack.vocalFile : currentTrack.instrumentalFile) : null}
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={seek}
+          />
+        </div>
 
         {/* Floating Lyrics Box (Desktop ≥1100px) */}
         {lyrics && lyricsDisplayState === 'panel' && (
@@ -157,17 +171,6 @@ const Player: React.FC = () => {
           isVisible={lyricsDisplayState === 'integrated'}
         />
       )}
-
-      {/* Time Display */}
-      <TimeDisplay currentTime={currentTime} duration={duration} />
-
-      {/* Waveform Progress Bar */}
-      <WaveformBar
-        audioUrl={currentTrack ? (audioVersion === 'vocal' && currentTrack.hasVocals ? currentTrack.vocalFile : currentTrack.instrumentalFile) : null}
-        currentTime={currentTime}
-        duration={duration}
-        onSeek={seek}
-      />
 
       {/* Playback Controls */}
       <Controls

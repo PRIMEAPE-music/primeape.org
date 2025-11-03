@@ -44,9 +44,15 @@ export function parseLRC(lrcContent: string): ParsedLRC {
   for (const rawLine of rawLines) {
     const trimmed = rawLine.trim();
     if (!trimmed) continue;
+    
+    // Skip lines that are only timestamps with no text (malformed LRC)
+    // Example: "[00:10.5]" with no lyrics after it
+    if (/^\[[\d:.]+\]$/.test(trimmed)) continue;
 
     // Check if line contains timestamp [MM:SS.SS]
-    const timestampRegex = /\[(\d{2,}):(\d{2})\.(\d{2,3})\]/g;
+    // Regular expression for LRC timestamps: [mm:ss.x], [mm:ss.xx], or [mm:ss.xxx]
+    // Captures 1-3 digit milliseconds to handle various LRC format variations
+    const timestampRegex = /\[(\d{2,}):(\d{2})\.(\d{1,3})\]/g;
     const metadataRegex = /\[(\w+):([^\]]+)\]/;
 
     // Check for metadata tags
@@ -86,11 +92,21 @@ export function parseLRC(lrcContent: string): ParsedLRC {
 
     // Extract all timestamps (some lines have multiple)
     while ((match = timestampRegex.exec(trimmed)) !== null) {
-      const [fullMatch, minutes, seconds, centiseconds] = match;
+      const [fullMatch, minutes, seconds, millisecondsRaw] = match;
+      
+      // Normalize milliseconds to 3 digits by padding with zeros
+      // Examples: "5" → "500", "75" → "750", "750" → "750"
+      // This ensures "75" is interpreted as 750ms (0.75s), not 75ms (0.075s)
+      let msString = millisecondsRaw;
+      while (msString.length < 3) {
+        msString += '0';
+      }
+      const milliseconds = parseInt(msString, 10);
+      
       const time = 
         parseInt(minutes) * 60 + 
         parseInt(seconds) + 
-        parseInt(centiseconds.padEnd(2, '0')) / 100;
+        milliseconds / 1000;
       
       timestamps.push(time);
       
