@@ -65,6 +65,8 @@
   max-width: 500px;
   justify-self: center; /* Centers column in grid cell */
   margin: 0 auto; /* Additional centering insurance */
+  position: relative;
+  left: 23.5px; /* Fix the offset */
 }
 
 /* Ensure center column is properly sized on desktop */
@@ -80,7 +82,8 @@
 
 .player__floating-box {
   flex-shrink: 0;
-  align-self: start; /* CHANGED from center - aligns panels to top */
+  align-self: start;
+  margin-top: -100px; /* Negative margin pulls panels UP */
 }
 
 /* Hide floating boxes on tablet and mobile */
