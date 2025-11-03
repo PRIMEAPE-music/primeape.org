@@ -143,15 +143,13 @@
   }
 
   .player__main-area {
-    display: grid;
-    grid-template-columns: 403.5px 1fr 403.5px;
-    gap: var(--space-xl);
+    display: flex; /* Change from grid to flex */
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
     padding: var(--space-xl) 0;
     position: relative;
-    min-height: 500px;
-    align-items: start;
-    justify-items: center;
-    place-items: center; /* Force true centering */
+    min-height: auto; /* Remove fixed min-height */
   }
 }
 
@@ -179,6 +177,19 @@
   }
 
   .player__main-area {
-    padding: var(--space-md) 0;
+    padding: var(--space-md) var(--space-sm); /* Add horizontal padding */
+    gap: var(--space-sm); /* Reduce gap on mobile */
+  }
+
+  /* Ensure center column is full-width responsive on mobile */
+  .player__center-column {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  /* Allow center column children to be responsive */
+  .player__center-column > * {
+    max-width: 100%;
   }
 }
