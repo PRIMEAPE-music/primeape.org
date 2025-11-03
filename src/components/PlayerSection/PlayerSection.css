@@ -10,7 +10,7 @@
 
 .player-section__container {
   width: 100%;
-  max-width: var(--player-max-width);
+  /* No max-width - let Player component control its own width */
 }
 
 /* Mobile adjustments */

@@ -2,7 +2,7 @@
   width: 100%;
   max-width: var(--artwork-size-desktop);
   margin: 0 auto;
-  padding: var(--space-md);
+  padding: 0; /* Remove padding - it offsets alignment */
 }
 
 .artwork__container {

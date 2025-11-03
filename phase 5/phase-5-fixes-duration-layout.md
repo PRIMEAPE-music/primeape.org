@@ -1,301 +1,105 @@
-# EXECUTE: Phase 5 Fixes - Duration Display & Layout Centering
+# FINAL ALIGNMENT FIX: Center Controls + Position Panels Correctly
 
-**Prompt for Claude Code:**
-"Please implement these Phase 5 fixes to correct the track durations and prevent layout shifting. Follow all implementation instructions exactly as specified below."
+## Issue Description
 
----
+**Problem 1: Controls Not Centered**
+The playback controls (prev/play/next) are not horizontally aligned with:
+- Time display (0:00 / 3:02)
+- Waveform
+- Track info
+- Artwork
 
-## Issue 1: Track Durations Show 3:00 (Placeholder Values)
+The play button center should align with the time display center and waveform center.
 
-**Root Cause:** The `album.ts` file has placeholder duration values of 180 seconds (3:00) for all tracks.
+**Problem 2: Panels Too Low**
+The tracklist and lyrics panels are positioned too low. They should:
+- Start much higher (near the top of the artwork)
+- Be positioned where the red boxes indicate in the screenshot
 
-**Solution:** Update the actual durations for each track. The durations need to be manually updated based on the actual MP3 file lengths.
+## Root Cause Analysis
 
-### Fix 1: Update Track Durations in Album Data
+**Controls Centering Issue:**
+The controls have `width: 100%; max-width: 400px;` which makes them 400px wide, but the individual buttons inside don't fill that width. The flex container is 400px but the buttons are only ~208px total (48px + 64px + 48px + gaps), leaving asymmetric spacing.
 
-**File:** `src/data/album.ts`
+**Panel Positioning Issue:**
+Panels are using `align-self: center` which centers them in the entire grid row. Since the grid has `min-height: 600px`, the panels are centering within that 600px space, placing them too low.
 
-**Current state:** All tracks have `duration: 180` (placeholder)
+## Solution
 
-**Action Required:** Replace placeholder durations with actual track lengths in seconds.
-
-**Find the tracks array** and update each track's duration:
-
-```typescript
-const tracks: Track[] = [
-  {
-    id: 1,
-    title: 'A GOOD DAY',
-    duration: 180, // ← UPDATE THIS with actual duration
-    vocalFile: '/music/vocal/01-A-GOOD-DAY.mp3',
-    instrumentalFile: '/music/instrumental/01-A-GOOD-DAY-instrumental.mp3',
-    lyricsFile: '/lyrics/test.lrc',
-    hasVocals: false,
-  },
-  {
-    id: 2,
-    title: 'AWARENESS',
-    duration: 180, // ← UPDATE THIS
-    vocalFile: '/music/vocal/02-AWARENESS.mp3',
-    instrumentalFile: '/music/instrumental/02-AWARENESS-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
-  },
-  // ... continue for all tracks
-];
-```
-
-**How to get actual durations:**
-
-**Option A - Use Browser Console (Quick Method):**
-1. Play each track in the browser
-2. Let it fully load
-3. Open console and run: `document.querySelector('audio').duration`
-4. Record the number (in seconds)
-5. Update album.ts with actual values
-
-**Option B - Use Audio Metadata Tool:**
-1. Use a tool like `ffprobe` or `mediainfo` on the MP3 files
-2. Get duration in seconds for each file
-3. Update album.ts
-
-**Example with actual durations (you'll need to replace these with real values):**
-
-```typescript
-const tracks: Track[] = [
-  {
-    id: 1,
-    title: 'A GOOD DAY',
-    duration: 167, // 2:47 (example - replace with actual)
-    vocalFile: '/music/vocal/01-A-GOOD-DAY.mp3',
-    instrumentalFile: '/music/instrumental/01-A-GOOD-DAY-instrumental.mp3',
-    lyricsFile: '/lyrics/test.lrc',
-    hasVocals: false,
-  },
-  {
-    id: 2,
-    title: 'AWARENESS',
-    duration: 189, // 3:09 (example - replace with actual)
-    vocalFile: '/music/vocal/02-AWARENESS.mp3',
-    instrumentalFile: '/music/instrumental/02-AWARENESS-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
-  },
-  // ... etc
-];
-```
-
-**Note:** For now, you can leave the placeholder values if you don't have the actual durations yet. The functionality works correctly; it's just displaying placeholder data.
+1. **Fix controls centering**: Use `width: fit-content` instead of `width: 100%` so the container shrinks to button size
+2. **Fix panel positioning**: Use `align-self: start` to position panels at the top of the grid area
 
 ---
 
-## Issue 2: Layout Shifts When Lyrics Panel Closes
+## Implementation Instructions
 
-**Root Cause:** The center column is using `justify-content: center` in the main area, which causes it to center between the tracklist and empty space (instead of staying centered absolutely).
+### File 1: `src/components/Player/Controls.css`
 
-**Solution:** Use flexbox with proper spacing to keep center column always centered.
+#### Change: Fix horizontal centering
 
-### Fix 2: Update Player Main Area Layout
-
-**File:** `src/components/Player/Player.css`
-
-**Find the `.player__main-area` rule** (around line 38-47):
-
+**FIND:**
 ```css
-.player__main-area {
+.controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xl); /* 32px between boxes and artwork */
-  padding: var(--space-xl) 0;
-  position: relative;
-  min-height: 800px;
+  gap: var(--space-md);
+  padding: 0;
+  margin: 0 auto;
+  margin-top: -32px;
+  width: 100%;
+  max-width: 400px;
 }
 ```
 
-**Replace with:**
-
+**REPLACE WITH:**
 ```css
-.player__main-area {
+.controls {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* Changed from 'center' */
-  gap: var(--space-xl); /* 32px between boxes and artwork */
-  padding: var(--space-xl) 0;
-  position: relative;
-  min-height: 800px;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: 0;
+  margin: 0 auto;
+  margin-top: -32px;
+  width: fit-content; /* CHANGED from width: 100% - shrinks to button size */
 }
 ```
 
-**This alone won't fix it. We need to add spacing logic.**
+**Key change:** 
+- Remove `width: 100%` and `max-width: 400px`
+- Add `width: fit-content` so the container is exactly the size of the buttons
+- This ensures the buttons are truly centered, not just their container
 
 ---
 
-### Fix 3: Add Spacer Divs for Balanced Layout
+### File 2: `src/components/Player/Player.css`
 
-**File:** `src/components/Player/Player.tsx`
+#### Change 1: Fix panel vertical alignment
 
-**Objective:** Add invisible spacer divs that maintain equal spacing on both sides of the center column.
-
-**Find the player__main-area section** (around line 150-180):
-
-```tsx
-      {/* Player Main Area with Floating Boxes */}
-      <div className="player__main-area">
-        {/* Tracklist (LEFT side, desktop only) */}
-        <div className="player__floating-box player__floating-box--tracklist">
-          <Tracklist
-            tracks={FOUNDATION_ALBUM.tracks}
-            currentTrackId={currentTrackId}
-            isPlaying={isPlaying}
-            isLoading={playbackState === 'loading'}
-            onTrackSelect={handleTrackSelect}
-          />
-        </div>
-
-        {/* Central Column: Artwork + Track Info + Time + Waveform */}
-        <div className="player__center-column">
-          {/* ... center column content ... */}
-        </div>
-
-        {/* Floating Lyrics Box (Desktop ≥1100px) */}
-        {lyrics && lyricsDisplayState === 'panel' && (
-          <div className="player__floating-box player__floating-box--lyrics">
-            <LyricsPanel
-              lines={lyrics.lines}
-              currentTime={currentTime}
-              isPlaying={isPlaying}
-              isVisible={true}
-              onClose={toggleLyrics}
-              onLineClick={(time) => seek(time)}
-            />
-          </div>
-        )}
-      </div>
-```
-
-**Replace with (add spacer when lyrics are hidden):**
-
-```tsx
-      {/* Player Main Area with Floating Boxes */}
-      <div className="player__main-area">
-        {/* Tracklist (LEFT side, desktop only) */}
-        <div className="player__floating-box player__floating-box--tracklist">
-          <Tracklist
-            tracks={FOUNDATION_ALBUM.tracks}
-            currentTrackId={currentTrackId}
-            isPlaying={isPlaying}
-            isLoading={playbackState === 'loading'}
-            onTrackSelect={handleTrackSelect}
-          />
-        </div>
-
-        {/* Central Column: Artwork + Track Info + Time + Waveform */}
-        <div className="player__center-column">
-          {/* ... center column content ... */}
-        </div>
-
-        {/* Floating Lyrics Box (Desktop ≥1100px) OR Spacer */}
-        {lyrics && lyricsDisplayState === 'panel' ? (
-          <div className="player__floating-box player__floating-box--lyrics">
-            <LyricsPanel
-              lines={lyrics.lines}
-              currentTime={currentTime}
-              isPlaying={isPlaying}
-              isVisible={true}
-              onClose={toggleLyrics}
-              onLineClick={(time) => seek(time)}
-            />
-          </div>
-        ) : (
-          <div className="player__floating-box player__floating-box--spacer" aria-hidden="true" />
-        )}
-      </div>
-```
-
----
-
-### Fix 4: Add Spacer Styling
-
-**File:** `src/components/Player/Player.css`
-
-**Find the desktop floating box section** (around line 65-90):
-
+**FIND:**
 ```css
-/* Show floating boxes on desktop */
-@media (min-width: 1100px) {
-  .player__floating-box {
-    display: block;
-  }
-
-  /* Tracklist box - LEFT side */
-  .player__floating-box--tracklist {
-    width: 380px;
-    height: 750px;
-    order: -1; /* Ensure tracklist appears first (LEFT) */
-  }
-
-  /* Lyrics box - RIGHT side */
-  .player__floating-box--lyrics {
-    order: 1; /* Ensure lyrics appears last (RIGHT) */
-  }
-
-  /* Artwork naturally centers */
-  .player__main-area .artwork {
-    align-self: center;
-  }
+.player__floating-box {
+  flex-shrink: 0;
+  align-self: center;
 }
 ```
 
-**Add spacer styling:**
-
+**REPLACE WITH:**
 ```css
-/* Show floating boxes on desktop */
-@media (min-width: 1100px) {
-  .player__floating-box {
-    display: block;
-  }
-
-  /* Tracklist box - LEFT side */
-  .player__floating-box--tracklist {
-    width: 380px;
-    height: 750px;
-    order: -1; /* Ensure tracklist appears first (LEFT) */
-  }
-
-  /* Lyrics box - RIGHT side */
-  .player__floating-box--lyrics {
-    width: 427px;
-    order: 1; /* Ensure lyrics appears last (RIGHT) */
-  }
-
-  /* Spacer box - RIGHT side (when lyrics hidden) */
-  .player__floating-box--spacer {
-    width: 427px; /* Same width as lyrics panel */
-    height: 1px; /* Minimal height, just for spacing */
-    order: 1; /* Same order as lyrics */
-    visibility: hidden; /* Invisible but takes up space */
-  }
-
-  /* Artwork naturally centers */
-  .player__main-area .artwork {
-    align-self: center;
-  }
+.player__floating-box {
+  flex-shrink: 0;
+  align-self: start; /* CHANGED from center - aligns panels to top */
 }
 ```
+
+**Rationale:** `align-self: start` positions panels at the top of the grid cell instead of center.
 
 ---
 
-## Alternative Solution (Simpler)
+#### Change 2: Adjust grid alignment
 
-If the spacer approach feels too complex, here's an alternative using CSS Grid:
-
-### Alternative Fix: Use CSS Grid for Player Main Area
-
-**File:** `src/components/Player/Player.css`
-
-**Replace the `.player__main-area` rule:**
-
+**FIND:**
 ```css
 .player__main-area {
   display: grid;
@@ -303,107 +107,279 @@ If the spacer approach feels too complex, here's an alternative using CSS Grid:
   gap: var(--space-xl);
   padding: var(--space-xl) 0;
   position: relative;
-  min-height: 800px;
-  align-items: start;
-}
-
-/* Center column should be centered within its grid cell */
-.player__center-column {
-  justify-self: center;
-}
-
-/* Hide tracklist on mobile/tablet */
-@media (max-width: 1099px) {
-  .player__main-area {
-    display: flex;
-    flex-direction: column;
-    grid-template-columns: none;
-  }
+  min-height: 600px;
+  align-items: center;
+  justify-items: center;
 }
 ```
 
-**This ensures:**
-- Tracklist is always 380px (LEFT)
-- Center column is always centered in the middle grid cell
-- Right side is always 427px (for lyrics or empty space)
+**REPLACE WITH:**
+```css
+.player__main-area {
+  display: grid;
+  grid-template-columns: 380px 1fr 427px; /* LEFT | CENTER | RIGHT */
+  gap: var(--space-xl);
+  padding: var(--space-xl) 0;
+  position: relative;
+  min-height: 500px; /* REDUCED from 600px */
+  align-items: start; /* CHANGED from center - align all to top */
+  justify-items: center;
+}
+```
+
+**Key changes:**
+- `min-height: 600px` → `500px` (matches panel height)
+- `align-items: center` → `start` (aligns everything to top of grid)
 
 ---
 
-## Testing Instructions
+#### Change 3: Center the center column properly
 
-### Test Fix 1: Durations
-1. Update at least one track's duration in `album.ts` with a real value
-2. Reload the page
-3. Check that the tracklist shows the updated duration
-4. Verify formatTime is working correctly (e.g., 167 seconds → "2:47")
+**FIND:**
+```css
+.player__center-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  max-width: 500px;
+  justify-self: center;
+}
+```
 
-### Test Fix 2 & 3: Layout Centering (Spacer Method)
-1. Open the website
-2. Click lyrics toggle to cycle through states
-3. **When lyrics are HIDDEN:**
-   - Center column should be perfectly centered
-   - Equal space on left (after tracklist) and right (spacer)
-4. **When lyrics are in PANEL mode:**
-   - Center column should stay in same position
-   - Lyrics panel replaces the spacer on right
-5. **When lyrics are INTEGRATED:**
-   - Center column should stay in same position
-   - Right side shows nothing (spacer)
+**REPLACE WITH:**
+```css
+.player__center-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers children horizontally */
+  gap: var(--space-xs);
+  width: 100%;
+  max-width: 500px;
+  justify-self: center; /* Centers column in grid cell */
+  margin: 0 auto; /* Additional centering insurance */
+}
+```
 
-### Test Alternative Fix: Layout Centering (Grid Method)
-1. Open the website
-2. Toggle lyrics through all states
-3. Center column should NEVER move horizontally
-4. Tracklist always on left (380px)
-5. Right side always reserves 427px (lyrics or empty)
-
----
-
-## Validation Checklist
-
-### Duration Fix
-- [ ] Actual track durations are displayed (not all 3:00)
-- [ ] formatTime utility works correctly
-- [ ] Durations are accurate for each track
-
-### Layout Fix (Choose one method)
-- [ ] Center column stays perfectly centered regardless of lyrics state
-- [ ] No horizontal shifting when toggling lyrics
-- [ ] Equal visual weight on both sides
-- [ ] Tracklist always visible on left (desktop)
-- [ ] Layout works on mobile (tracklist hidden)
-
-### Visual Quality
-- [ ] No awkward gaps or overlaps
-- [ ] Spacing feels balanced
-- [ ] Transitions are smooth
-- [ ] All three boxes (tracklist, center, lyrics) align properly
+**Key change:** Added `margin: 0 auto` for extra centering insurance.
 
 ---
 
-## Recommended Approach
+### File 3: `src/components/Player/TimeDisplay.css`
 
-**For Duration Fix:**
-- Start by updating a few tracks manually
-- Test that formatTime works
-- Update remaining tracks as you get actual durations
+#### Ensure time display is centered
 
-**For Layout Fix:**
-- Try the **Grid method (alternative)** first - it's simpler and more reliable
-- If you prefer flexbox, use the **Spacer method**
-- Grid method is recommended for this use case
+**FIND:**
+```css
+.time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+```
+
+**REPLACE WITH:**
+```css
+.time-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: fit-content; /* Shrink to content size */
+  margin: 0 auto; /* Center in parent */
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  user-select: none;
+}
+```
+
+**Key changes:** Added `width: fit-content` and `margin: 0 auto` to ensure perfect centering.
 
 ---
 
-## Summary
+### File 4: `src/components/Player/WaveformBar.css`
 
-**Issue 1 - Durations:**
-- Update `src/data/album.ts` with actual track durations
-- Placeholder values (180) need to be replaced with real seconds
+#### Ensure waveform is centered
 
-**Issue 2 - Layout Shifting:**
-- **Recommended:** Use CSS Grid for player__main-area
-- **Alternative:** Add spacer div when lyrics are hidden
-- Both methods keep center column always centered
+**VERIFY THIS EXISTS:**
+```css
+.waveform-bar {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 60px;
+  margin: 0 auto;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+```
 
-Apply these fixes and your Phase 5 will be complete!
+**If `margin: 0 auto` is missing, add it.**
+
+---
+
+## Expected Results After Changes
+
+### Visual Verification Checklist
+
+**Horizontal Alignment (Center Column):**
+- [ ] Time display center aligns with artwork center
+- [ ] Waveform center aligns with artwork center  
+- [ ] Play button center aligns with time display center
+- [ ] All center column elements share the same vertical center line
+- [ ] When you draw an imaginary vertical line through the play button, it passes through the center of the time display
+
+**Panel Positioning:**
+- [ ] Tracklist panel starts near the top (aligned with or slightly above artwork top)
+- [ ] Lyrics panel starts near the top (aligned with or slightly above artwork top)
+- [ ] Panels are positioned where the red boxes indicate in the screenshot
+- [ ] Panels don't float in the middle of excessive white space
+
+**Overall Layout:**
+- [ ] Everything feels aligned and balanced
+- [ ] No excessive gaps or spacing
+- [ ] Panels frame the center content nicely
+- [ ] Controls are tight to the waveform
+
+### Precision Test (DevTools)
+
+**Centering Test:**
+1. Open DevTools
+2. Select `.time-display` element
+3. Find its center X coordinate
+4. Select `.controls` element  
+5. Find the play button's center X coordinate
+6. **These should match exactly**
+
+**Panel Position Test:**
+1. Select `.player__floating-box--tracklist`
+2. Check its `top` position relative to parent
+3. Should be near 0 (at the top of grid cell)
+4. Repeat for lyrics panel
+
+---
+
+## Testing Procedure
+
+### Step 1: Horizontal Alignment Test
+1. Open browser to `http://localhost:3002`
+2. Viewport at 1400px width
+3. Look at the time display (0:00 / 3:02)
+4. Look at the play button below the waveform
+5. **Verify**: The center of the play button aligns with the center of the time display
+6. Use a ruler or straight edge on screen to check vertical alignment
+
+### Step 2: Panel Position Test
+1. With full layout visible
+2. Observe tracklist panel position
+3. Should start near the top, aligned with artwork area
+4. Observe lyrics panel position (toggle lyrics if needed)
+5. Should mirror tracklist position on the right side
+
+### Step 3: DevTools Measurement
+1. Right-click play button → Inspect
+2. In DevTools, find the element's center point
+3. Right-click time display → Inspect  
+4. Find the element's center point
+5. Compare X coordinates - should be identical
+
+### Step 4: Visual Balance Test
+1. Step back from screen
+2. Overall layout should feel balanced
+3. Panels should "frame" the center content
+4. No awkward gaps or floating elements
+
+---
+
+## Troubleshooting
+
+### Issue: Play button still not centered with time display
+**Possible causes:**
+1. Browser cache not cleared
+2. Changes not saved properly
+3. Other CSS overriding the changes
+
+**Solutions:**
+1. Hard refresh (Ctrl+Shift+R or Cmd+Shift+R)
+2. Check DevTools Computed styles for `.controls`
+3. Verify `width: fit-content` is actually applied
+4. Try adding `!important`: `width: fit-content !important;`
+
+### Issue: Panels still in wrong position
+**Check:**
+1. Is `align-self: start` applied to `.player__floating-box`?
+2. Is `align-items: start` applied to `.player__main-area`?
+
+**Solution:** Verify both changes were applied, not just one.
+
+### Issue: Panels cut off at top
+**Solution:** They might be too high now. Adjust by adding small top margin:
+```css
+.player__floating-box {
+  margin-top: var(--space-md); /* Add 24px from top */
+}
+```
+
+### Issue: Controls still slightly off-center
+**Debug:**
+1. Check if prev/next buttons are truly the same size (48px each)
+2. Check gap between buttons (`var(--space-md)` = 24px)
+3. Calculate: 48 + 24 + 64 + 24 + 48 = 208px total
+4. This should be centered within the center column
+
+---
+
+## Why This Works
+
+**Controls Centering:**
+- Before: Container was 400px wide with 208px of buttons → buttons floated inside
+- After: Container is 208px wide (fit-content) → container matches button size
+- Result: The container itself is centered, and since it matches button size, buttons are perfectly centered
+
+**Panel Positioning:**
+- Before: `align-self: center` + `min-height: 600px` = panels center in 600px space
+- After: `align-self: start` + `align-items: start` = panels align to top
+- Result: Panels start at the top of the grid area, not floating in the middle
+
+---
+
+## Completion Checklist
+
+### Code Changes
+- [ ] Changed `.controls` to `width: fit-content`
+- [ ] Removed `max-width: 400px` from `.controls`
+- [ ] Changed `.player__floating-box` to `align-self: start`
+- [ ] Changed `.player__main-area` to `align-items: start`
+- [ ] Reduced `.player__main-area` min-height to 500px
+- [ ] Added `margin: 0 auto` to `.player__center-column`
+- [ ] Added `width: fit-content` and `margin: 0 auto` to `.time-display`
+
+### Visual Testing
+- [ ] Play button center aligns with time display center
+- [ ] All center elements share same vertical center line
+- [ ] Panels positioned at top (not floating in middle)
+- [ ] Overall layout feels balanced and aligned
+
+### Functional Testing  
+- [ ] All controls work correctly
+- [ ] No layout breaks at any viewport size
+- [ ] TypeScript compiles successfully
+- [ ] No console errors
+
+---
+
+## Additional Notes
+
+**The Key Insight:** Using `width: fit-content` on flex containers that need to be centered is crucial. When you use `width: 100%`, the container fills the parent but the children might not fill the container, causing visual misalignment.
+
+**Design Principle:** Each element should be exactly as wide as its content, then centered. This ensures true visual centering rather than container centering with uneven content distribution.

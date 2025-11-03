@@ -3,6 +3,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
+  width: fit-content; /* Shrink to content size */
+  margin: 0 auto; /* Center in parent */
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);

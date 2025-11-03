@@ -1,6 +1,8 @@
 .track-info {
   text-align: center;
-  padding: var(--space-md) 0;
+  padding: 0; /* Remove padding for tighter layout */
+  margin: 0 auto; /* Explicit centering */
+  width: 100%; /* Full width for text centering */
 }
 
 .track-info__track-number {

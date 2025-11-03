@@ -5,7 +5,7 @@
   padding: var(--space-xl) var(--space-lg);
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-xs); /* Reduced from space-sm (16px) to space-xs (8px) */
 }
 
 /* Ensure player doesn't get squished on small screens */
@@ -23,15 +23,18 @@
 .player__secondary-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-md);
-  padding: var(--space-sm) 0;
+  justify-content: center; /* Changed from space-between */
+  gap: var(--space-lg); /* Increased from space-md (24px) to space-lg (32px) */
+  padding: var(--space-xs) 0; /* Reduced from space-sm */
+  max-width: 600px; /* Constrain width to prevent excessive spreading */
+  margin: 0 auto; /* Center the controls container */
 }
 
 .player__version-row {
   display: flex;
   justify-content: center;
-  padding: var(--space-sm) 0;
+  padding: var(--space-xs) 0; /* Reduced from space-sm */
+  margin-top: var(--space-xs); /* Add slight top margin for separation */
 }
 
 /* ============================================================================
@@ -44,8 +47,9 @@
   gap: var(--space-xl);
   padding: var(--space-xl) 0;
   position: relative;
-  min-height: 800px;
-  align-items: start;
+  min-height: 500px; /* REDUCED from 600px */
+  align-items: start; /* CHANGED from center - align all to top */
+  justify-items: center;
 }
 
 /* ============================================================================
@@ -56,10 +60,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-md); /* 16px spacing between all components */
-  width: 100%; /* Allow full width for waveform */
-  max-width: 900px; /* Increased to accommodate integrated lyrics box */
-  justify-self: center; /* Center within grid cell */
+  gap: var(--space-xs); /* 8px spacing - REDUCED for tighter layout */
+  width: 100%;
+  max-width: 500px;
+  justify-self: center; /* Centers column in grid cell */
+  margin: 0 auto; /* Additional centering insurance */
 }
 
 /* Ensure center column is properly sized on desktop */
@@ -75,7 +80,7 @@
 
 .player__floating-box {
   flex-shrink: 0;
-  align-self: center;
+  align-self: start; /* CHANGED from center - aligns panels to top */
 }
 
 /* Hide floating boxes on tablet and mobile */
@@ -94,7 +99,7 @@
   /* Tracklist box - LEFT side */
   .player__floating-box--tracklist {
     width: 380px;
-    height: 750px;
+    height: 500px; /* REDUCED from 750px */
     order: -1; /* Ensure tracklist appears first (LEFT) */
   }
 

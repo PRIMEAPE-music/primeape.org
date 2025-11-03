@@ -3,7 +3,10 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-md);
-  padding: var(--space-md) 0;
+  padding: 0;
+  margin: 0 auto;
+  margin-top: -32px;
+  width: fit-content; /* CHANGED from width: 100% - shrinks to button size */
 }
 
 .controls__button {
