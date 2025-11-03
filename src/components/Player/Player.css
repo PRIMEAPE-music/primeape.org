@@ -37,6 +37,15 @@
   margin-top: var(--space-xs); /* Add slight top margin for separation */
 }
 
+/* Mobile: Adjust secondary controls for better centering */
+@media (max-width: 768px) {
+  .player__secondary-controls {
+    gap: var(--space-sm); /* Reduce gap from space-lg to space-sm */
+    max-width: 100%; /* Allow full width on mobile */
+    padding: var(--space-xs) var(--space-sm); /* Add horizontal padding */
+  }
+}
+
 /* ============================================================================
    PLAYER MAIN AREA - FLOATING BOX LAYOUT
    ============================================================================ */
