@@ -23,11 +23,11 @@
 .player__secondary-controls {
   display: flex;
   align-items: center;
-  justify-content: center; /* Changed from space-between */
-  gap: var(--space-lg); /* Increased from space-md (24px) to space-lg (32px) */
-  padding: var(--space-xs) 0; /* Reduced from space-sm */
-  max-width: 600px; /* Constrain width to prevent excessive spreading */
-  margin: 0 auto; /* Center the controls container */
+  justify-content: center;
+  gap: var(--space-md); /* Changed back from space-lg (32px) to space-md (16px) */
+  padding: var(--space-xs) 0;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .player__version-row {
