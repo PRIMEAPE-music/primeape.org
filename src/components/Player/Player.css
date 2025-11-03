@@ -1,8 +1,8 @@
 .player {
   width: 100%;
-  max-width: var(--player-max-width);
+  max-width: 1400px; /* Increased to accommodate floating boxes */
   margin: 0 auto;
-  padding: var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -32,4 +32,100 @@
   display: flex;
   justify-content: center;
   padding: var(--space-sm) 0;
+}
+
+/* ============================================================================
+   PLAYER MAIN AREA - FLOATING BOX LAYOUT
+   ============================================================================ */
+
+.player__main-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xl); /* 32px between boxes and artwork */
+  padding: var(--space-xl) 0;
+  position: relative;
+  min-height: 800px;
+}
+
+/* ============================================================================
+   FLOATING BOX CONTAINERS
+   ============================================================================ */
+
+.player__floating-box {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Hide floating boxes on tablet and mobile */
+@media (max-width: 1099px) {
+  .player__floating-box {
+    display: none !important;
+  }
+}
+
+/* Show floating boxes on desktop */
+@media (min-width: 1100px) {
+  .player__floating-box {
+    display: block;
+  }
+
+  .player__floating-box--lyrics {
+    /* No order needed - just flexbox natural flow */
+  }
+
+  /* Artwork naturally centers */
+  .player__main-area .artwork {
+    align-self: center;
+  }
+}
+
+/* ============================================================================
+   MOBILE/TABLET LYRICS PANEL
+   ============================================================================ */
+
+.player__mobile-lyrics-panel {
+  display: none;
+}
+
+/* Show mobile panel on tablet and mobile when lyrics are visible */
+@media (max-width: 1099px) {
+  .player__mobile-lyrics-panel {
+    display: block;
+  }
+
+  .player__main-area {
+    flex-direction: column;
+    align-items: center;
+    min-height: auto;
+    gap: var(--space-md);
+  }
+}
+
+/* Desktop: hide mobile panel */
+@media (min-width: 1100px) {
+  .player__mobile-lyrics-panel {
+    display: none;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 1099px) {
+  .player {
+    max-width: var(--player-max-width);
+    padding: var(--space-lg) var(--space-md);
+  }
+}
+
+@media (max-width: 768px) {
+  .player {
+    padding: var(--space-md);
+  }
+
+  .player__main-area {
+    padding: var(--space-md) 0;
+  }
 }

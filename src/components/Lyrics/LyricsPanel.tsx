@@ -1,0 +1,124 @@
+import React, { useRef, useEffect } from 'react';
+import type { LyricLine as LyricLineType } from '@/types';
+import { useLyricsSync, smoothScrollToElement } from '@/hooks/useLyricsSync';
+import LyricLine from './LyricLine';
+import './LyricsPanel.css';
+
+interface LyricsPanelProps {
+  lines: LyricLineType[];
+  currentTime: number;
+  isPlaying: boolean;
+  isVisible: boolean;
+  onClose: () => void;
+  onLineClick?: (time: number) => void;
+}
+
+/**
+ * LyricsPanel Component
+ * 
+ * Side panel (desktop) or bottom panel (mobile) with full lyrics
+ * Auto-scrolls to current line
+ */
+const LyricsPanel: React.FC<LyricsPanelProps> = ({
+  lines,
+  currentTime,
+  isPlaying,
+  isVisible,
+  onClose,
+  onLineClick,
+}) => {
+  const panelRef = useRef<HTMLDivElement>(null);
+  const isUserScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef<number | null>(null);
+
+  // Use sync hook
+  const {
+    currentLineIndex,
+    upcomingLineIndex,
+    isAutoScrollEnabled,
+    setAutoScrollEnabled,
+  } = useLyricsSync(lines, currentTime, isPlaying);
+
+  // Detect user scroll
+  const handleScroll = () => {
+    isUserScrollingRef.current = true;
+    setAutoScrollEnabled(false);
+
+    // Re-enable auto-scroll after 3 seconds of no scrolling
+    if (scrollTimeoutRef.current) {
+      window.clearTimeout(scrollTimeoutRef.current);
+    }
+
+    scrollTimeoutRef.current = window.setTimeout(() => {
+      isUserScrollingRef.current = false;
+      setAutoScrollEnabled(true);
+    }, 3000);
+  };
+
+  // Auto-scroll to current line
+  useEffect(() => {
+    if (!isVisible || currentLineIndex === -1 || !isAutoScrollEnabled) return;
+
+    const panel = panelRef.current;
+    const currentLine = panel?.querySelector('.lyric-line--current') as HTMLElement;
+
+    if (panel && currentLine && !isUserScrollingRef.current) {
+      smoothScrollToElement(currentLine, panel);
+    }
+  }, [currentLineIndex, isVisible, isAutoScrollEnabled]);
+
+  // Cleanup
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        window.clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <>
+      {/* Overlay backdrop (mobile) */}
+      <div className="lyrics-panel__backdrop" onClick={onClose} />
+
+      {/* Panel */}
+      <div ref={panelRef} className="lyrics-panel">
+        {/* Header */}
+        <div className="lyrics-panel__header">
+          <h3 className="lyrics-panel__title">Lyrics</h3>
+          <button
+            className="lyrics-panel__close"
+            onClick={onClose}
+            aria-label="Close lyrics panel"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Lyrics content */}
+        <div className="lyrics-panel__content" onScroll={handleScroll}>
+          {lines.length === 0 ? (
+            <p className="lyrics-panel__empty">No lyrics available</p>
+          ) : (
+            lines.map((line, index) => (
+              <LyricLine
+                key={index}
+                line={line}
+                isCurrent={index === currentLineIndex}
+                isUpcoming={index === upcomingLineIndex}
+                onClick={() => onLineClick?.(line.time)}
+              />
+            ))
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default LyricsPanel;

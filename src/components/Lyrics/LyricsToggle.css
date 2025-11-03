@@ -1,0 +1,54 @@
+.lyrics-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: var(--space-xs);
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.lyrics-toggle:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background-color: var(--color-border);
+}
+
+.lyrics-toggle:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.lyrics-toggle:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.lyrics-toggle:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+.lyrics-toggle--active {
+  color: var(--color-active);
+}
+
+.lyrics-toggle__indicator {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+}
+
+.lyrics-toggle__dot {
+  width: 3px;
+  height: 3px;
+  background-color: var(--color-active);
+  border-radius: var(--radius-full);
+}

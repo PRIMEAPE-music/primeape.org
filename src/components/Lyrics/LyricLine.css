@@ -1,0 +1,33 @@
+.lyric-line {
+  padding: var(--space-sm) var(--space-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.lyric-line:hover {
+  background-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.lyric-line--current {
+  color: var(--color-active);
+  font-weight: var(--font-weight-medium);
+  background-color: var(--color-border);
+  transform: scale(1.02);
+}
+
+.lyric-line--upcoming {
+  color: var(--color-text-primary);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .lyric-line {
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-sm);
+  }
+}

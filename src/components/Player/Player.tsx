@@ -12,6 +12,10 @@ import ShuffleButton from './ShuffleButton';
 import RepeatButton from './RepeatButton';
 import EqualizerToggle from './EqualizerToggle';
 import VersionToggle from './VersionToggle';
+import LyricsToggle from '../Lyrics/LyricsToggle';
+import LyricsPanel from '../Lyrics/LyricsPanel';
+import LyricsBox from '../Lyrics/LyricsBox';
+import { useLyrics } from '@/hooks/useLyrics';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
 import './Player.css';
 
@@ -68,6 +72,13 @@ const Player: React.FC = () => {
   const trackIndex = currentTrack ? FOUNDATION_ALBUM.tracks.findIndex(track => track.id === currentTrack.id) : 0;
   const isPlaying = playbackState === 'playing';
 
+  // Lyrics
+  const {
+    lyrics,
+    displayState: lyricsDisplayState,
+    toggleDisplayState: toggleLyrics,
+  } = useLyrics(currentTrack?.lyricsFile || null);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onPlayPause: togglePlayPause,
@@ -104,14 +115,6 @@ const Player: React.FC = () => {
       {/* Hidden audio element */}
       <audio ref={audioRef} preload="metadata" />
 
-      {/* Album Artwork with Equalizer */}
-      <Artwork 
-        isPlaying={isPlaying}
-        audioContext={audioContext}
-        sourceNode={sourceNode}
-        showEqualizer={showEqualizer}
-      />
-
       {/* Track Information */}
       <TrackInfo 
         track={currentTrack} 
@@ -119,6 +122,41 @@ const Player: React.FC = () => {
         trackIndex={trackIndex}
         error={error} 
       />
+
+      {/* Player Main Area with Floating Boxes */}
+      <div className="player__main-area">
+        {/* Album Artwork with Equalizer */}
+        <Artwork 
+          isPlaying={isPlaying}
+          audioContext={audioContext}
+          sourceNode={sourceNode}
+          showEqualizer={showEqualizer}
+        />
+
+        {/* Floating Lyrics Box (Desktop ≥1100px) */}
+        {lyrics && lyricsDisplayState === 'panel' && (
+          <div className="player__floating-box player__floating-box--lyrics">
+            <LyricsPanel
+              lines={lyrics.lines}
+              currentTime={currentTime}
+              isPlaying={isPlaying}
+              isVisible={true}
+              onClose={toggleLyrics}
+              onLineClick={(time) => seek(time)}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Integrated Lyrics Box */}
+      {lyrics && (
+        <LyricsBox
+          lines={lyrics.lines}
+          currentTime={currentTime}
+          isPlaying={isPlaying}
+          isVisible={lyricsDisplayState === 'integrated'}
+        />
+      )}
 
       {/* Time Display */}
       <TimeDisplay currentTime={currentTime} duration={duration} />
@@ -161,6 +199,13 @@ const Player: React.FC = () => {
           onToggle={toggleEqualizer}
         />
 
+        {/* Lyrics Toggle */}
+        <LyricsToggle
+          displayState={lyricsDisplayState}
+          hasLyrics={!!lyrics}
+          onToggle={toggleLyrics}
+        />
+
         {/* Volume Control */}
         <VolumeControl
           volume={volume}
@@ -174,6 +219,20 @@ const Player: React.FC = () => {
           repeatMode={repeatMode}
           onToggle={toggleRepeat}
         />
+      </div>
+
+      {/* Mobile/Tablet Lyrics Panel (< 1100px) */}
+      <div className="player__mobile-lyrics-panel">
+        {lyrics && lyricsDisplayState === 'panel' && (
+          <LyricsPanel
+            lines={lyrics.lines}
+            currentTime={currentTime}
+            isPlaying={isPlaying}
+            isVisible={true}
+            onClose={toggleLyrics}
+            onLineClick={(time) => seek(time)}
+          />
+        )}
       </div>
 
       {/* Keyboard Shortcuts Help Overlay */}
