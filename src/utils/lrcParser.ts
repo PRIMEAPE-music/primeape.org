@@ -38,12 +38,24 @@ export function parseLRC(lrcContent: string): ParsedLRC {
   const lines: LyricLine[] = [];
   const metadata: LRCMetadata = {};
 
+  console.log('📄 parseLRC: Starting parse, content length:', lrcContent.length);
+  
+  // Normalize line endings: remove all \r characters (Windows CRLF → LF)
+  const normalizedContent = lrcContent.replace(/\r/g, '');
+  
   // Split into lines and process
-  const rawLines = lrcContent.split('\n');
+  const rawLines = normalizedContent.split('\n');
+  console.log('📄 parseLRC: Total raw lines:', rawLines.length);
+
+  let matchedLines = 0;
+  let skippedLines = 0;
 
   for (const rawLine of rawLines) {
     const trimmed = rawLine.trim();
-    if (!trimmed) continue;
+    if (!trimmed) {
+      skippedLines++;
+      continue;
+    }
     
     // Skip lines that are only timestamps with no text (malformed LRC)
     // Example: "[00:10.5]" with no lyrics after it
@@ -120,6 +132,7 @@ export function parseLRC(lrcContent: string): ParsedLRC {
         time: timestamp,
         text: text || '', // Handle empty lines
       });
+      matchedLines++;
     }
   }
 
@@ -134,6 +147,13 @@ export function parseLRC(lrcContent: string): ParsedLRC {
     });
   }
 
+  console.log('📄 parseLRC: Parse complete -', {
+    totalRawLines: rawLines.length,
+    skippedLines,
+    matchedLines,
+    finalLinesCount: lines.length
+  });
+
   return {
     metadata,
     lines,
@@ -147,17 +167,27 @@ export function parseLRC(lrcContent: string): ParsedLRC {
  * @returns Promise<ParsedLRC>
  */
 export async function loadLRC(url: string): Promise<ParsedLRC> {
+  console.log('📄 loadLRC: Fetching from:', url);
   try {
     const response = await fetch(url);
+    console.log('📄 loadLRC: Response status:', response.status);
     
     if (!response.ok) {
       throw new Error(`Failed to load LRC file: ${response.statusText}`);
     }
 
     const content = await response.text();
-    return parseLRC(content);
+    console.log('📄 loadLRC: Content received, length:', content.length);
+    
+    const parsed = parseLRC(content);
+    console.log('📄 loadLRC: Parsed successfully:', {
+      linesCount: parsed.lines.length,
+      metadata: parsed.metadata
+    });
+    
+    return parsed;
   } catch (error) {
-    console.error('Error loading LRC file:', error);
+    console.error('❌ loadLRC: Error:', error);
     throw error;
   }
 }

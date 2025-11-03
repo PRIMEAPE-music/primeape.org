@@ -134,8 +134,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/14-GRANDEUR.mp3',
     instrumentalFile: '/music/instrumental/14-GRANDEUR-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/14-GRANDEUR.lrc',
+    hasVocals: true,
   },
   {
     id: 15,

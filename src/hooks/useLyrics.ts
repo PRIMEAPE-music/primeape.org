@@ -41,19 +41,26 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
     let cancelled = false;
 
     const fetchLyrics = async () => {
+      console.log('🎵 useLyrics: Starting fetch for URL:', lyricsUrl);
       setIsLoading(true);
       setError(null);
 
       try {
         const parsed = await loadLRC(lyricsUrl);
+        console.log('🎵 useLyrics: Loaded lyrics:', {
+          linesCount: parsed.lines.length,
+          hasMetadata: !!parsed.metadata,
+          firstLine: parsed.lines[0]
+        });
         
         if (!cancelled) {
           setLyrics(parsed);
           setIsLoading(false);
+          console.log('🎵 useLyrics: State updated, lyrics set');
         }
       } catch (err) {
         if (!cancelled) {
-          console.error('Failed to load lyrics:', err);
+          console.error('❌ useLyrics: Failed to load lyrics:', err);
           setError('Failed to load lyrics');
           setIsLoading(false);
         }

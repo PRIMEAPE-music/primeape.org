@@ -79,6 +79,20 @@ const Player: React.FC = () => {
     toggleDisplayState: toggleLyrics,
   } = useLyrics(currentTrack?.lyricsFile || null);
 
+  // DEBUG: Log lyrics state whenever it changes
+  useEffect(() => {
+    console.log('🎵 Player Component State:', {
+      trackId: currentTrackId,
+      trackTitle: currentTrack?.title,
+      lyricsFile: currentTrack?.lyricsFile,
+      hasLyrics: !!lyrics,
+      linesCount: lyrics?.lines?.length || 0,
+      displayState: lyricsDisplayState,
+      shouldShowPanel: !!(lyrics && lyricsDisplayState === 'panel'),
+      shouldShowBox: !!(lyrics && lyricsDisplayState === 'integrated'),
+    });
+  }, [lyrics, lyricsDisplayState, currentTrack, currentTrackId]);
+
   // Keyboard shortcuts
   useKeyboardShortcuts({
     onPlayPause: togglePlayPause,
