@@ -1,7 +1,7 @@
 .lyrics-box {
   width: 100%;
-  max-width: var(--player-max-width);
-  margin: 0 auto;
+  max-width: 700px; /* Constrain width for readability */
+  margin: 0 auto; /* Center within parent column */
   padding: var(--space-md);
   background-color: var(--color-border);
   border-radius: var(--radius-md);

@@ -39,13 +39,13 @@
    ============================================================================ */
 
 .player__main-area {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xl); /* 32px between boxes and artwork */
+  display: grid;
+  grid-template-columns: 380px 1fr 427px; /* LEFT | CENTER | RIGHT */
+  gap: var(--space-xl);
   padding: var(--space-xl) 0;
   position: relative;
   min-height: 800px;
+  align-items: start;
 }
 
 /* ============================================================================
@@ -58,7 +58,8 @@
   align-items: center;
   gap: var(--space-md); /* 16px spacing between all components */
   width: 100%; /* Allow full width for waveform */
-  max-width: 800px; /* Constrain on large screens */
+  max-width: 900px; /* Increased to accommodate integrated lyrics box */
+  justify-self: center; /* Center within grid cell */
 }
 
 /* Ensure center column is properly sized on desktop */
@@ -90,8 +91,16 @@
     display: block;
   }
 
+  /* Tracklist box - LEFT side */
+  .player__floating-box--tracklist {
+    width: 380px;
+    height: 750px;
+    order: -1; /* Ensure tracklist appears first (LEFT) */
+  }
+
+  /* Lyrics box - RIGHT side */
   .player__floating-box--lyrics {
-    /* No order needed - just flexbox natural flow */
+    order: 1; /* Ensure lyrics appears last (RIGHT) */
   }
 
   /* Artwork naturally centers */
@@ -115,10 +124,12 @@
   }
 
   .player__main-area {
+    display: flex;
     flex-direction: column;
     align-items: center;
     min-height: auto;
     gap: var(--space-md);
+    grid-template-columns: none;
   }
 }
 

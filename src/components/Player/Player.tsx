@@ -15,6 +15,7 @@ import VersionToggle from './VersionToggle';
 import LyricsToggle from '../Lyrics/LyricsToggle';
 import LyricsPanel from '../Lyrics/LyricsPanel';
 import LyricsBox from '../Lyrics/LyricsBox';
+import Tracklist from '../Tracklist/Tracklist';
 import { useLyrics } from '@/hooks/useLyrics';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
 import './Player.css';
@@ -54,6 +55,7 @@ const Player: React.FC = () => {
     repeatMode,
     error,
     togglePlayPause,
+    loadTrack,
     nextTrack,
     prevTrack,
     seek,
@@ -124,6 +126,24 @@ const Player: React.FC = () => {
     isEnabled: true,
   });
 
+  // Handle track selection from tracklist
+  const handleTrackSelect = (trackId: number) => {
+    // If clicking the same track that's already loaded
+    if (trackId === currentTrackId) {
+      // Toggle play/pause
+      togglePlayPause();
+    } else {
+      // Load and play new track
+      loadTrack(trackId);
+      // Auto-play after a short delay to let track load
+      setTimeout(() => {
+        if (playbackState !== 'playing') {
+          togglePlayPause();
+        }
+      }, 100);
+    }
+  };
+
   return (
     <div className="player">
       {/* Hidden audio element */}
@@ -131,6 +151,17 @@ const Player: React.FC = () => {
 
       {/* Player Main Area with Floating Boxes */}
       <div className="player__main-area">
+        {/* Tracklist (LEFT side, desktop only) */}
+        <div className="player__floating-box player__floating-box--tracklist">
+          <Tracklist
+            tracks={FOUNDATION_ALBUM.tracks}
+            currentTrackId={currentTrackId}
+            isPlaying={isPlaying}
+            isLoading={playbackState === 'loading'}
+            onTrackSelect={handleTrackSelect}
+          />
+        </div>
+
         {/* Central Column: Artwork + Track Info + Time + Waveform */}
         <div className="player__center-column">
           {/* Album Artwork with Equalizer */}
@@ -148,6 +179,16 @@ const Player: React.FC = () => {
             trackIndex={trackIndex}
             error={error} 
           />
+
+          {/* Integrated Lyrics Box (appears between track info and time) */}
+          {lyrics && (
+            <LyricsBox
+              lines={lyrics.lines}
+              currentTime={currentTime}
+              isPlaying={isPlaying}
+              isVisible={lyricsDisplayState === 'integrated'}
+            />
+          )}
 
           {/* Time Display */}
           <TimeDisplay currentTime={currentTime} duration={duration} />
@@ -175,16 +216,6 @@ const Player: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Integrated Lyrics Box */}
-      {lyrics && (
-        <LyricsBox
-          lines={lyrics.lines}
-          currentTime={currentTime}
-          isPlaying={isPlaying}
-          isVisible={lyricsDisplayState === 'integrated'}
-        />
-      )}
 
       {/* Playback Controls */}
       <Controls

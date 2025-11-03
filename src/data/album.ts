@@ -14,7 +14,7 @@ const tracks: Track[] = [
   {
     id: 1,
     title: 'A GOOD DAY',
-    duration: 180,
+    duration: 167, // 2:47 - Example updated duration
     vocalFile: '/music/vocal/01-A-GOOD-DAY.mp3',
     instrumentalFile: '/music/instrumental/01-A-GOOD-DAY-instrumental.mp3',
     lyricsFile: '/lyrics/test.lrc', // Test lyrics file
@@ -23,7 +23,7 @@ const tracks: Track[] = [
   {
     id: 2,
     title: 'AWARENESS',
-    duration: 180,
+    duration: 189, // 3:09 - Example updated duration
     vocalFile: '/music/vocal/02-AWARENESS.mp3',
     instrumentalFile: '/music/instrumental/02-AWARENESS-instrumental.mp3',
     lyricsFile: null,
@@ -131,7 +131,7 @@ const tracks: Track[] = [
   {
     id: 14,
     title: 'GRANDEUR',
-    duration: 180,
+    duration: 203, // 3:23 - Example updated duration
     vocalFile: '/music/vocal/14-GRANDEUR.mp3',
     instrumentalFile: '/music/instrumental/14-GRANDEUR-instrumental.mp3',
     lyricsFile: '/lyrics/14-GRANDEUR.lrc',

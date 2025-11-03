@@ -1,0 +1,142 @@
+/* ============================================================================
+   TRACKLIST ITEM
+   ============================================================================ */
+
+.tracklist-item {
+  display: grid;
+  grid-template-columns: 40px 1fr auto;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--transition-fast),
+              transform var(--transition-fast);
+  width: 100%;
+}
+
+.tracklist-item:hover {
+  background-color: var(--color-border);
+}
+
+.tracklist-item:active {
+  transform: scale(0.98);
+}
+
+.tracklist-item:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   CURRENT TRACK HIGHLIGHT
+   ============================================================================ */
+
+.tracklist-item--current {
+  background-color: var(--color-active);
+  color: var(--color-bg);
+}
+
+.tracklist-item--current:hover {
+  background-color: var(--color-hover);
+}
+
+/* ============================================================================
+   TRACK NUMBER / ICON
+   ============================================================================ */
+
+.tracklist-item__number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.tracklist-item__track-number {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.tracklist-item--current .tracklist-item__track-number {
+  color: var(--color-bg);
+  font-weight: var(--font-weight-bold);
+}
+
+.tracklist-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: var(--color-bg);
+}
+
+/* ============================================================================
+   TRACK TITLE
+   ============================================================================ */
+
+.tracklist-item__title {
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tracklist-item--current .tracklist-item__title {
+  font-weight: var(--font-weight-bold);
+}
+
+/* ============================================================================
+   TRACK DURATION
+   ============================================================================ */
+
+.tracklist-item__duration {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tracklist-item--current .tracklist-item__duration {
+  color: var(--color-bg);
+  opacity: 0.9;
+}
+
+/* ============================================================================
+   MOBILE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .tracklist-item {
+    grid-template-columns: 32px 1fr auto;
+    padding: var(--space-xs) var(--space-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .tracklist-item__number {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tracklist-item__track-number {
+    font-size: var(--font-size-xs);
+  }
+}
+
+/* ============================================================================
+   DISABLED STATE
+   ============================================================================ */
+
+.tracklist-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}

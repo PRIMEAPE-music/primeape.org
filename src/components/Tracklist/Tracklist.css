@@ -1,0 +1,102 @@
+/* ============================================================================
+   TRACKLIST CONTAINER
+   ============================================================================ */
+
+.tracklist {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  height: 100%;
+  transition: background-color var(--transition-normal),
+              border-color var(--transition-normal);
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+
+.tracklist__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-md) var(--space-sm);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tracklist__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.tracklist__count {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================================================
+   CONTENT (SCROLLABLE)
+   ============================================================================ */
+
+.tracklist__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-xs) 0;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+.tracklist__content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tracklist__content::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+.tracklist__content::-webkit-scrollbar-thumb {
+  background: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+.tracklist__content::-webkit-scrollbar-thumb:hover {
+  background: var(--color-hover);
+}
+
+/* Firefox scrollbar */
+.tracklist__content {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-accent) var(--color-bg);
+}
+
+/* ============================================================================
+   MOBILE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 640px) {
+  .tracklist__header {
+    padding: var(--space-sm) var(--space-sm) var(--space-xs);
+  }
+
+  .tracklist__title {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.tracklist__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
