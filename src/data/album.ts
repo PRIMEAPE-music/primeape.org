@@ -26,8 +26,8 @@ const tracks: Track[] = [
     duration: 189, // 3:09 - Example updated duration
     vocalFile: '/music/vocal/02-AWARENESS.mp3',
     instrumentalFile: '/music/instrumental/02-AWARENESS-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/02-AWARENESS.lrc',
+    hasVocals: true,
   },
   {
     id: 3,
@@ -35,8 +35,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/03-MOTIVATIONS.mp3',
     instrumentalFile: '/music/instrumental/03-MOTIVATIONS-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/03-MOTIVATIONS.lrc',
+    hasVocals: true,
   },
   {
     id: 4,
@@ -71,8 +71,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/07-DEGRADATION.mp3',
     instrumentalFile: '/music/instrumental/07-DEGRADATION-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/07-DEGRADATION.lrc',
+    hasVocals: true,
   },
   {
     id: 8,
@@ -80,8 +80,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/08-RESISTANCE.mp3',
     instrumentalFile: '/music/instrumental/08-RESISTANCE-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/08-RESISTANCE.lrc',
+    hasVocals: true,
   },
   {
     id: 9,
@@ -98,8 +98,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/10-JOY.mp3',
     instrumentalFile: '/music/instrumental/10-JOY-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/10-JOY.lrc',
+    hasVocals: true,
   },
   {
     id: 11,
@@ -107,8 +107,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/11-CREATION.mp3',
     instrumentalFile: '/music/instrumental/11-CREATION-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/11-CREATION.lrc',
+    hasVocals: true,
   },
   {
     id: 12,
@@ -116,8 +116,8 @@ const tracks: Track[] = [
     duration: 180,
     vocalFile: '/music/vocal/12-TECHNOLOGY.mp3',
     instrumentalFile: '/music/instrumental/12-TECHNOLOGY-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/12-TECHNOLOGY.lrc',
+    hasVocals: true,
   },
   {
     id: 13,

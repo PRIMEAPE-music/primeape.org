@@ -25,14 +25,16 @@
 .lyrics-box__line {
   padding: var(--space-xs) 0;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   line-height: var(--line-height-relaxed);
   transition: all var(--transition-normal);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .lyrics-box__line--current {
   color: var(--color-active);
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   transform: scale(1.05);
 }
@@ -51,10 +53,10 @@
   }
 
   .lyrics-box__line {
-    font-size: var(--font-size-xs);
+    font-size: 0.625rem;
   }
 
   .lyrics-box__line--current {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
   }
 }
