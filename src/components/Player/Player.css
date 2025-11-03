@@ -40,9 +40,10 @@
 /* Mobile: Adjust secondary controls for better centering */
 @media (max-width: 768px) {
   .player__secondary-controls {
-    gap: var(--space-sm); /* Reduce gap from space-lg to space-sm */
+    gap: var(--space-xs); /* Smaller gap for mobile */
     max-width: 100%; /* Allow full width on mobile */
-    padding: var(--space-xs) var(--space-sm); /* Add horizontal padding */
+    padding: var(--space-xs) 0; /* Keep vertical padding only */
+    justify-content: space-evenly; /* Distribute evenly with equal space around each item */
   }
 }
 
