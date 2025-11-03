@@ -50,7 +50,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
   const [playbackState, setPlaybackState] = useState<PlaybackState>('stopped');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [audioVersion, setAudioVersion] = useState<AudioVersion>('instrumental');
+  const [audioVersion, setAudioVersion] = useState<AudioVersion>('vocal');
   const [error, setError] = useState<string | null>(null);
   const [volume, setVolumeState] = useState(0.7); // Default 70%
   const [isMuted, setIsMuted] = useState(false);
@@ -450,8 +450,8 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     const track = getTrackById(initialTrackId);
     if (!track || !audioRef.current) return;
     
-    // Determine which file to load based on initial audioVersion
-    const fileToLoad = track.instrumentalFile; // Always start with instrumental
+    // Determine which file to load - prefer vocal if available
+    const fileToLoad = track.hasVocals ? track.vocalFile : track.instrumentalFile;
     
     setPlaybackState('loading');
     setError(null);
