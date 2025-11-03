@@ -65,7 +65,7 @@ export function parseLRC(lrcContent: string): ParsedLRC {
     // Regular expression for LRC timestamps: [mm:ss.x], [mm:ss.xx], or [mm:ss.xxx]
     // Captures 1-3 digit milliseconds to handle various LRC format variations
     const timestampRegex = /\[(\d{2,}):(\d{2})\.(\d{1,3})\]/g;
-    const metadataRegex = /\[(\w+):([^\]]+)\]/;
+    const metadataRegex = /\[([a-zA-Z]+):([^\]]+)\]/;
 
     // Check for metadata tags
     const metadataMatch = trimmed.match(metadataRegex);
