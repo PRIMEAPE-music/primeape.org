@@ -1,14 +1,17 @@
 .waveform-bar {
   position: relative;
   width: 100%;
-  max-width: 600px; /* Increased from 400px (50% wider) */
+  max-width: 600px;
+  min-width: 600px; /* Force minimum width instead */
   height: 60px;
-  margin: 0 auto; /* ADDED for centering */
+  margin: 0 auto;
   cursor: pointer;
   user-select: none;
   touch-action: none;
   border-radius: var(--radius-sm);
   overflow: hidden;
+  flex-shrink: 0;
+  align-self: center; /* Ensure it centers in flex parent */
 }
 
 .waveform-bar:focus {

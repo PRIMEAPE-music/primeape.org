@@ -43,13 +43,14 @@
 
 .player__main-area {
   display: grid;
-  grid-template-columns: 403.5px 1fr 403.5px; /* Equal side columns */
+  grid-template-columns: 403.5px minmax(600px, 600px) 403.5px; /* Force center to 600px */
   gap: var(--space-xl);
   padding: var(--space-xl) 0;
   position: relative;
   min-height: 500px;
   align-items: start;
   justify-items: center;
+  justify-content: center; /* Center the entire grid */
 }
 
 /* ============================================================================
@@ -60,11 +61,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-xs); /* 8px spacing - REDUCED for tighter layout */
+  gap: var(--space-xs);
+  width: 600px; /* Match waveform exactly */
+  max-width: none;
+  justify-self: center;
+  margin: 0 auto;
+}
+
+/* Ensure all children center relative to the waveform (widest element) */
+.player__center-column > * {
   width: 100%;
-  max-width: 500px;
-  justify-self: center; /* Centers column in grid cell */
-  margin: 0 auto; /* Additional centering insurance */
+  max-width: 600px; /* Match waveform width */
+}
+
+/* But let artwork stay at 400px */
+.player__center-column .artwork {
+  max-width: 400px;
 }
 
 /* Ensure center column is properly sized on desktop */
@@ -131,12 +143,15 @@
   }
 
   .player__main-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: auto;
-    gap: var(--space-md);
-    grid-template-columns: none;
+    display: grid;
+    grid-template-columns: 403.5px 1fr 403.5px;
+    gap: var(--space-xl);
+    padding: var(--space-xl) 0;
+    position: relative;
+    min-height: 500px;
+    align-items: start;
+    justify-items: center;
+    place-items: center; /* Force true centering */
   }
 }
 

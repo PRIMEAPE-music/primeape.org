@@ -52,8 +52,7 @@
 }
 
 .artwork__container--no-image::after {
-  content: 'PRIMEAPE\AFOUNDATION';
-  white-space: pre;
+  content: 'FOUNDATION';
   text-align: center;
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);

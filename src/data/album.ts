@@ -14,7 +14,7 @@ const tracks: Track[] = [
   {
     id: 1,
     title: 'A GOOD DAY',
-    duration: 167, // 2:47 - Example updated duration
+    duration: 182, // 2:47 - Example updated duration
     vocalFile: '/music/vocal/01-A-GOOD-DAY.mp3',
     instrumentalFile: '/music/instrumental/01-A-GOOD-DAY-instrumental.mp3',
     lyricsFile: '/lyrics/test.lrc', // Test lyrics file
@@ -23,7 +23,7 @@ const tracks: Track[] = [
   {
     id: 2,
     title: 'AWARENESS',
-    duration: 189, // 3:09 - Example updated duration
+    duration: 222, // 3:09 - Example updated duration
     vocalFile: '/music/vocal/02-AWARENESS.mp3',
     instrumentalFile: '/music/instrumental/02-AWARENESS-instrumental.mp3',
     lyricsFile: '/lyrics/02-AWARENESS.lrc',
@@ -32,7 +32,7 @@ const tracks: Track[] = [
   {
     id: 3,
     title: 'MOTIVATIONS',
-    duration: 180,
+    duration: 181,
     vocalFile: '/music/vocal/03-MOTIVATIONS.mp3',
     instrumentalFile: '/music/instrumental/03-MOTIVATIONS-instrumental.mp3',
     lyricsFile: '/lyrics/03-MOTIVATIONS.lrc',
@@ -41,7 +41,7 @@ const tracks: Track[] = [
   {
     id: 4,
     title: 'HISTORY',
-    duration: 180,
+    duration: 143,
     vocalFile: '/music/vocal/04-HISTORY.mp3',
     instrumentalFile: '/music/instrumental/04-HISTORY-instrumental.mp3',
     lyricsFile: null,
@@ -50,7 +50,7 @@ const tracks: Track[] = [
   {
     id: 5,
     title: 'VICE',
-    duration: 180,
+    duration: 226,
     vocalFile: '/music/vocal/05-VICE.mp3',
     instrumentalFile: '/music/instrumental/05-VICE-instrumental.mp3',
     lyricsFile: null,
@@ -59,7 +59,7 @@ const tracks: Track[] = [
   {
     id: 6,
     title: 'LIGHT',
-    duration: 180,
+    duration: 205,
     vocalFile: '/music/vocal/06-LIGHT.mp3',
     instrumentalFile: '/music/instrumental/06-LIGHT-instrumental.mp3',
     lyricsFile: null,
@@ -68,7 +68,7 @@ const tracks: Track[] = [
   {
     id: 7,
     title: 'DEGRADATION',
-    duration: 180,
+    duration: 134,
     vocalFile: '/music/vocal/07-DEGRADATION.mp3',
     instrumentalFile: '/music/instrumental/07-DEGRADATION-instrumental.mp3',
     lyricsFile: '/lyrics/07-DEGRADATION.lrc',
@@ -77,7 +77,7 @@ const tracks: Track[] = [
   {
     id: 8,
     title: 'RESISTANCE',
-    duration: 180,
+    duration: 296,
     vocalFile: '/music/vocal/08-RESISTANCE.mp3',
     instrumentalFile: '/music/instrumental/08-RESISTANCE-instrumental.mp3',
     lyricsFile: '/lyrics/08-RESISTANCE.lrc',
@@ -86,7 +86,7 @@ const tracks: Track[] = [
   {
     id: 9,
     title: 'TEMPORARY',
-    duration: 180,
+    duration: 258,
     vocalFile: '/music/vocal/09-TEMPORARY.mp3',
     instrumentalFile: '/music/instrumental/09-TEMPORARY-instrumental.mp3',
     lyricsFile: null,
@@ -95,7 +95,7 @@ const tracks: Track[] = [
   {
     id: 10,
     title: 'JOY',
-    duration: 180,
+    duration: 134,
     vocalFile: '/music/vocal/10-JOY.mp3',
     instrumentalFile: '/music/instrumental/10-JOY-instrumental.mp3',
     lyricsFile: '/lyrics/10-JOY.lrc',
@@ -104,7 +104,7 @@ const tracks: Track[] = [
   {
     id: 11,
     title: 'CREATION',
-    duration: 180,
+    duration: 217,
     vocalFile: '/music/vocal/11-CREATION.mp3',
     instrumentalFile: '/music/instrumental/11-CREATION-instrumental.mp3',
     lyricsFile: '/lyrics/11-CREATION.lrc',
@@ -113,7 +113,7 @@ const tracks: Track[] = [
   {
     id: 12,
     title: 'TECHNOLOGY',
-    duration: 180,
+    duration: 224,
     vocalFile: '/music/vocal/12-TECHNOLOGY.mp3',
     instrumentalFile: '/music/instrumental/12-TECHNOLOGY-instrumental.mp3',
     lyricsFile: '/lyrics/12-TECHNOLOGY.lrc',
@@ -122,7 +122,7 @@ const tracks: Track[] = [
   {
     id: 13,
     title: 'CACHE',
-    duration: 180,
+    duration: 178,
     vocalFile: '/music/vocal/13-CACHE.mp3',
     instrumentalFile: '/music/instrumental/13-CACHE-instrumental.mp3',
     lyricsFile: null,
@@ -131,7 +131,7 @@ const tracks: Track[] = [
   {
     id: 14,
     title: 'GRANDEUR',
-    duration: 203, // 3:23 - Example updated duration
+    duration: 150,
     vocalFile: '/music/vocal/14-GRANDEUR.mp3',
     instrumentalFile: '/music/instrumental/14-GRANDEUR-instrumental.mp3',
     lyricsFile: '/lyrics/14-GRANDEUR.lrc',
@@ -140,7 +140,7 @@ const tracks: Track[] = [
   {
     id: 15,
     title: 'BATTLES',
-    duration: 180,
+    duration: 167,
     vocalFile: '/music/vocal/15-BATTLES.mp3',
     instrumentalFile: '/music/instrumental/15-BATTLES-instrumental.mp3',
     lyricsFile: null,
@@ -149,7 +149,7 @@ const tracks: Track[] = [
   {
     id: 16,
     title: 'ELEVATION',
-    duration: 180,
+    duration: 172,
     vocalFile: '/music/vocal/16-ELEVATION.mp3',
     instrumentalFile: '/music/instrumental/16-ELEVATION-instrumental.mp3',
     lyricsFile: null,

@@ -6,7 +6,8 @@
   padding: 0;
   margin: 0 auto;
   margin-top: -32px;
-  width: fit-content; /* CHANGED from width: 100% - shrinks to button size */
+  width: 100%; /* Change back to full width */
+  max-width: 600px; /* Match waveform width for proper centering */
 }
 
 .controls__button {

@@ -1,93 +1,68 @@
-# MAKE WAVEFORM PROGRESS BAR 50% WIDER
+# FIX WAVEFORM WIDTH - UPDATE CENTER COLUMN (FINAL FIX)
 
-## Objective
-Increase the waveform progress bar width by 50% (from 400px to 600px).
+## Problem Identified
+The `.player__center-column` still has `max-width: 500px` in the actual file, even though changes were supposed to be made. The waveform is rendering at 649px but being constrained by its parent.
 
 ---
 
-## File: src/components/Player/WaveformBar.css
+## File: src/components/Player/Player.css
 
-📁 **File:** `src/components/Player/WaveformBar.css`
+📁 **File:** `src/components/Player/Player.css`
 
 🔍 **FIND:**
 ```css
-.waveform-bar {
-  position: relative;
+.player__center-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs); /* 8px spacing - REDUCED for tighter layout */
   width: 100%;
-  max-width: 400px; /* ADDED to match artwork width */
-  height: 60px;
-  margin: 0 auto; /* ADDED for centering */
-  cursor: pointer;
-  user-select: none;
-  touch-action: none;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
+  max-width: 500px;
+  justify-self: center; /* Centers column in grid cell */
+  margin: 0 auto; /* Additional centering insurance */
 }
 ```
 
 ✏️ **REPLACE WITH:**
 ```css
-.waveform-bar {
-  position: relative;
+.player__center-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs); /* 8px spacing - REDUCED for tighter layout */
   width: 100%;
-  max-width: 600px; /* Increased from 400px (50% wider) */
-  height: 60px;
-  margin: 0 auto; /* ADDED for centering */
-  cursor: pointer;
-  user-select: none;
-  touch-action: none;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
+  max-width: 650px; /* Increased to accommodate 600px waveform */
+  justify-self: center; /* Centers column in grid cell */
+  margin: 0 auto; /* Additional centering insurance */
 }
 ```
 
 ---
 
-## Additional Check: Parent Container Width
+## Why This Will Work
 
-If the waveform STILL doesn't get wider after this change, we need to also check the parent Player container. The Player component might have a `max-width` that's constraining everything inside it.
+Your screenshot shows:
+- **Waveform canvas**: 649px wide ✓ (already correct)
+- **Parent container**: 500px max-width ❌ (blocking it)
 
-### File: src/components/Player/Player.css
+Once we change the parent to 650px, the waveform will finally be able to display its full 600px width.
 
-Search for:
-- `.player` class with `max-width` property
-- Any container that wraps the waveform
+---
 
-If you find something like:
-```css
-.player {
-  max-width: 800px;
-}
+## After Applying
+
+1. **Save the file**
+2. **Hard refresh browser**: `Ctrl + Shift + R` (Windows) or `Cmd + Shift + R` (Mac)
+3. **Check the waveform** - it should now be visibly wider
+
+If the dev server is acting up:
+```bash
+# Stop dev server (Ctrl+C)
+npm run dev
 ```
 
-You may need to increase that as well to accommodate the wider waveform.
-
 ---
 
-## Validation Checklist
+## Validation
 
-After applying:
-- [ ] Waveform bar is visibly wider than before
-- [ ] Waveform is still centered in the player
-- [ ] Waveform doesn't overflow the viewport on desktop
-- [ ] Mobile view still shows 100% width (responsive)
-- [ ] Click/drag seeking still works across the full width
-- [ ] Waveform bars render properly across the new width
-
----
-
-## If Still Not Working
-
-If the waveform STILL doesn't change width after applying the above, please:
-
-1. **Inspect the element** in browser DevTools
-2. Look at the computed width value
-3. Check which CSS rule is setting the actual width
-4. Share a screenshot or the computed styles
-
-The issue is likely a **parent container** also constraining the width. Common culprits:
-- `.player` component wrapper
-- `.player-section__container`
-- Any max-width on a parent element
-
-Let me know if you need help tracking down the parent constraint!
+The waveform should now be approximately **50% wider** than the artwork (400px → 600px).
