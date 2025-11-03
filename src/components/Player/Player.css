@@ -43,12 +43,12 @@
 
 .player__main-area {
   display: grid;
-  grid-template-columns: 380px 1fr 427px; /* LEFT | CENTER | RIGHT */
+  grid-template-columns: 403.5px 1fr 403.5px; /* Equal side columns */
   gap: var(--space-xl);
   padding: var(--space-xl) 0;
   position: relative;
-  min-height: 500px; /* REDUCED from 600px */
-  align-items: start; /* CHANGED from center - align all to top */
+  min-height: 500px;
+  align-items: start;
   justify-items: center;
 }
 
@@ -65,8 +65,6 @@
   max-width: 500px;
   justify-self: center; /* Centers column in grid cell */
   margin: 0 auto; /* Additional centering insurance */
-  position: relative;
-  left: 23.5px; /* Fix the offset */
 }
 
 /* Ensure center column is properly sized on desktop */
@@ -101,7 +99,8 @@
 
   /* Tracklist box - LEFT side */
   .player__floating-box--tracklist {
-    width: 380px;
+    width: 100%; /* Fill the grid cell (403.5px) */
+    max-width: 380px; /* But constrain to original size */
     height: 500px; /* REDUCED from 750px */
     order: -1; /* Ensure tracklist appears first (LEFT) */
   }

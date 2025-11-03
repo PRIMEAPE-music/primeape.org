@@ -52,7 +52,8 @@
 @media (min-width: 1100px) {
   .lyrics-panel {
     position: relative;
-    width: 427px; /* Increased by 1/3: 320px × 1.333 = 427px */
+    width: 100%;
+    max-width: 427px;
     height: 500px; /* REDUCED from 750px to match tracklist */
     animation: fade-scale-in var(--transition-normal);
   }
