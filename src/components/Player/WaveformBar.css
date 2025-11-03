@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
   max-width: 600px;
-  min-width: 600px; /* Force minimum width instead */
+  min-width: 0; /* Allow it to shrink on mobile */
   height: 60px;
   margin: 0 auto;
   cursor: pointer;
@@ -52,5 +52,7 @@
 @media (max-width: 768px) {
   .waveform-bar {
     height: 50px;
+    max-width: 100%; /* Ensure it doesn't exceed screen width */
+    width: calc(100% - var(--space-md)); /* Account for container padding */
   }
 }
