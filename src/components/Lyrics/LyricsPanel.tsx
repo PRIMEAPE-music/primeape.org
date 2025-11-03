@@ -11,6 +11,11 @@ interface LyricsPanelProps {
   isVisible: boolean;
   onClose: () => void;
   onLineClick?: (time: number) => void;
+  isMobile: boolean;
+  onPlayPause?: () => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  playbackState?: 'playing' | 'paused' | 'loading' | 'stopped';
 }
 
 /**
@@ -26,6 +31,11 @@ const LyricsPanel: React.FC<LyricsPanelProps> = ({
   isVisible,
   onClose,
   onLineClick,
+  isMobile,
+  onPlayPause,
+  onPrevious,
+  onNext,
+  playbackState = 'paused',
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null); // Add ref for scrollable content
@@ -85,8 +95,8 @@ const LyricsPanel: React.FC<LyricsPanelProps> = ({
       <div className="lyrics-panel__backdrop" onClick={onClose} />
 
       {/* Panel */}
-      <div ref={panelRef} className="lyrics-panel">
-        {/* Header */}
+      <div ref={panelRef} className={`lyrics-panel ${isMobile ? 'lyrics-panel--mobile' : ''}`}>
+        {/* Header with optional mobile controls */}
         <div className="lyrics-panel__header">
           <h3 className="lyrics-panel__title">Lyrics</h3>
           <button
@@ -100,6 +110,50 @@ const LyricsPanel: React.FC<LyricsPanelProps> = ({
             </svg>
           </button>
         </div>
+
+        {/* Mobile compact controls */}
+        {isMobile && onPlayPause && onPrevious && onNext && (
+          <div className="lyrics-panel__mobile-controls">
+            <button
+              className="lyrics-panel__control-btn"
+              onClick={onPrevious}
+              aria-label="Previous track"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="19 20 9 12 19 4 19 20" />
+                <line x1="5" y1="19" x2="5" y2="5" />
+              </svg>
+            </button>
+            
+            <button
+              className="lyrics-panel__control-btn lyrics-panel__control-btn--play"
+              onClick={onPlayPause}
+              aria-label={playbackState === 'playing' ? 'Pause' : 'Play'}
+            >
+              {playbackState === 'playing' ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="6" y="4" width="4" height="16" />
+                  <rect x="14" y="4" width="4" height="16" />
+                </svg>
+              ) : (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              )}
+            </button>
+            
+            <button
+              className="lyrics-panel__control-btn"
+              onClick={onNext}
+              aria-label="Next track"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="5 4 15 12 5 20 5 4" />
+                <line x1="19" y1="5" x2="19" y2="19" />
+              </svg>
+            </button>
+          </div>
+        )}
 
         {/* Lyrics content */}
         <div ref={contentRef} className="lyrics-panel__content" onScroll={handleScroll}>

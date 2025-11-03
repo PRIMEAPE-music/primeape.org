@@ -70,19 +70,20 @@
 }
 
 /* ============================================================================
-   TABLET: USE MOBILE PANEL (769px - 1099px)
+   TABLET: FULL SCREEN PANEL (769px - 1099px)
    ============================================================================ */
 
 @media (min-width: 769px) and (max-width: 1099px) {
-  .lyrics-panel {
+  .lyrics-panel--mobile {
     position: fixed;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 60vh;
-    max-height: 500px;
-    border-top: 2px solid var(--color-border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    height: 100vh;
+    max-height: none;
+    border: none;
+    border-radius: 0;
     z-index: calc(var(--z-modal) + 1);
     animation: slide-up var(--transition-normal);
   }
@@ -98,19 +99,20 @@
 }
 
 /* ============================================================================
-   MOBILE: BOTTOM PANEL (<769px)
+   MOBILE: FULL SCREEN PANEL (<769px)
    ============================================================================ */
 
 @media (max-width: 768px) {
-  .lyrics-panel {
+  .lyrics-panel--mobile {
     position: fixed;
+    top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 60vh;
-    max-height: 500px;
-    border-top: 2px solid var(--color-border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    height: 100vh;
+    max-height: none;
+    border: none;
+    border-radius: 0;
     z-index: calc(var(--z-modal) + 1);
     animation: slide-up var(--transition-normal);
   }
@@ -173,6 +175,66 @@
 .lyrics-panel__close:focus-visible {
   outline: 2px solid var(--color-active);
   outline-offset: 2px;
+}
+
+/* ============================================================================
+   MOBILE COMPACT CONTROLS
+   ============================================================================ */
+
+.lyrics-panel__mobile-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-lg);
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+  background-color: var(--color-bg);
+}
+
+.lyrics-panel__control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+}
+
+.lyrics-panel__control-btn--play {
+  width: 56px;
+  height: 56px;
+  background-color: var(--color-active);
+  color: var(--color-bg);
+}
+
+.lyrics-panel__control-btn:hover:not(:disabled) {
+  background-color: var(--color-border);
+  transform: scale(1.05);
+}
+
+.lyrics-panel__control-btn--play:hover:not(:disabled) {
+  background-color: var(--color-hover);
+}
+
+.lyrics-panel__control-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.lyrics-panel__control-btn:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 2px;
+}
+
+/* Hide mobile controls on desktop */
+@media (min-width: 1100px) {
+  .lyrics-panel__mobile-controls {
+    display: none;
+  }
 }
 
 /* ============================================================================

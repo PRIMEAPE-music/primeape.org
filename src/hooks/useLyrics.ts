@@ -26,7 +26,8 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
   // Load display state from localStorage
   const [displayState, setDisplayState] = useState<LyricsDisplayState>(() => {
     const saved = localStorage.getItem('primeape_lyrics_display');
-    return (saved as LyricsDisplayState) || 'hidden';
+    // Default to 'panel' for better UX (panel always visible on desktop)
+    return (saved as LyricsDisplayState) || 'panel';
   });
 
   // Load lyrics when URL changes
@@ -74,17 +75,30 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
     };
   }, [lyricsUrl]);
 
-  // Toggle display state: hidden → panel → integrated → hidden
+  // Toggle display state
+  // Desktop (≥1100px): panel → integrated → panel (no hidden state)
+  // Mobile (<1100px): hidden → panel → hidden (no integrated state)
   const toggleDisplayState = () => {
     setDisplayState(prev => {
       let next: LyricsDisplayState;
       
-      if (prev === 'hidden') {
-        next = 'panel';
-      } else if (prev === 'panel') {
-        next = 'integrated';
+      // Check if we're on desktop or mobile
+      const isDesktop = window.innerWidth >= 1100;
+      
+      if (isDesktop) {
+        // Desktop: toggle between panel and integrated (no hidden)
+        if (prev === 'panel') {
+          next = 'integrated';
+        } else {
+          next = 'panel';
+        }
       } else {
-        next = 'hidden';
+        // Mobile: toggle between hidden and panel (no integrated)
+        if (prev === 'hidden') {
+          next = 'panel';
+        } else {
+          next = 'hidden';
+        }
       }
 
       // Save to localStorage

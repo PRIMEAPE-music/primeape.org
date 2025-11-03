@@ -202,8 +202,8 @@ const Player: React.FC = () => {
           />
         </div>
 
-        {/* Floating Lyrics Box (Desktop ≥1100px) */}
-        {lyrics && lyricsDisplayState === 'panel' && (
+        {/* Floating Lyrics Box (Desktop ≥1100px) - Always visible when lyrics exist */}
+        {lyrics && (
           <div className="player__floating-box player__floating-box--lyrics">
             <LyricsPanel
               lines={lyrics.lines}
@@ -212,6 +212,7 @@ const Player: React.FC = () => {
               isVisible={true}
               onClose={toggleLyrics}
               onLineClick={(time) => seek(time)}
+              isMobile={false}
             />
           </div>
         )}
@@ -279,6 +280,11 @@ const Player: React.FC = () => {
             isVisible={true}
             onClose={toggleLyrics}
             onLineClick={(time) => seek(time)}
+            isMobile={true}
+            onPlayPause={togglePlayPause}
+            onPrevious={prevTrack}
+            onNext={nextTrack}
+            playbackState={playbackState}
           />
         )}
       </div>

@@ -21,9 +21,19 @@ const LyricsToggle: React.FC<LyricsToggleProps> = ({
 }) => {
   const getTitle = () => {
     if (!hasLyrics) return 'No lyrics available';
-    if (displayState === 'hidden') return 'Show lyrics panel';
-    if (displayState === 'panel') return 'Show integrated lyrics';
-    return 'Hide lyrics';
+    
+    // Check if we're on desktop or mobile
+    const isDesktop = window.innerWidth >= 1100;
+    
+    if (isDesktop) {
+      // Desktop: toggle between panel and auto-scroll box
+      if (displayState === 'panel') return 'Show auto-scroll lyrics';
+      return 'Hide auto-scroll lyrics';
+    } else {
+      // Mobile: toggle panel visibility
+      if (displayState === 'hidden') return 'Show lyrics';
+      return 'Hide lyrics';
+    }
   };
 
   return (
