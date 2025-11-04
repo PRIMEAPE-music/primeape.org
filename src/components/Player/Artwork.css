@@ -9,8 +9,8 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  border-radius: 0; /* Remove rounding to allow corner bars */
+  overflow: visible; /* Allow equalizer bars to extend beyond */
   background-color: var(--color-border);
   box-shadow: var(--shadow-lg);
   transition: transform var(--transition-normal),
@@ -37,6 +37,7 @@
   height: 100%;
   object-fit: cover;
   display: block;
+  border-radius: var(--radius-lg); /* Keep image rounded if desired */
 }
 
 /* Fallback for missing image */

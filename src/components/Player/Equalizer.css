@@ -24,6 +24,8 @@
   display: block;
   opacity: 0.75;
   mix-blend-mode: screen;
+  /* Prevent canvas from being clipped by parent's border-radius */
+  border-radius: 0 !important;
 }
 
 /* Animation when appearing */

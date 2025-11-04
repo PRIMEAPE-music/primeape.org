@@ -1,202 +1,281 @@
-# RADIAL EQUALIZER - DEFINITIVE FIXES
+# RADIAL EQUALIZER - FINAL CORRECTIONS
 
-## Root Cause Analysis
+## Issues Identified from Screenshot
 
-**Issue 1: Bass Still at Top**
-- Canvas Y-axis goes from top (0) to bottom (positive values)
-- `-Math.PI / 2` points UP in canvas coordinates (not down)
-- Need to use `Math.PI / 2` (positive) to point DOWN
+1. **Corners still truncated** - Bars don't reach the canvas edges at 45° angles
+2. **Asymmetric appearance** - Bass (bottom) is much taller than right/left sides, creating unbalanced look
 
-**Issue 2: Corners Don't Extend**
-- `outerRadius` correctly uses diagonal for starting position ✅
-- But `maxBarLength` still uses `Math.min(width, height)` ❌
-- Corner bars are limited by the shorter dimension, not the diagonal
+## Root Causes
+
+**Issue 1: Canvas Clipping**
+The canvas element itself has `border-radius` applied via CSS, which clips the bars before they can reach the corners. The bars are trying to extend, but the rounded corners cut them off.
+
+**Issue 2: Frequency Distribution**
+Currently using linear frequency mapping:
+```typescript
+const dataIndex = Math.floor((i / barCount) * frequencyData.length * 0.6);
+```
+This means:
+- Bar 0 (bottom) = index 0 (bass) - very high amplitude
+- Bar 36 (right) = index 86 (mid-bass) - medium amplitude  
+- Bar 72 (top) = index 172 (mids) - lower amplitude
+- Bar 144 = back to 0
+
+**The result:** Uneven distribution where bass dominates while other frequencies are underrepresented.
 
 ---
 
-## FIXES
+## SOLUTIONS
 
-### File: src/components/Player/Equalizer.tsx
+### Fix 1: Remove Border Radius to Allow Corner Extension
+
+📁 **File:** `src/components/Player/Artwork.css`
+
+Check if there's a border-radius applied to the artwork container. We need to find and modify it:
+
+🔍 **SEARCH FOR any of these:**
+```css
+.artwork__container {
+  /* ... */
+  border-radius: /* ... */;
+}
+
+.artwork__image {
+  /* ... */
+  border-radius: /* ... */;
+}
+
+.artwork {
+  /* ... */
+  border-radius: /* ... */;
+}
+```
+
+✏️ **MODIFY TO:**
+```css
+.artwork__container {
+  /* ... existing styles ... */
+  border-radius: 0; /* Remove rounding to allow corner bars */
+  overflow: visible; /* Allow equalizer bars to extend beyond */
+}
+
+/* If the image has border-radius, keep it but not on container */
+.artwork__image {
+  /* ... existing styles ... */
+  border-radius: var(--radius-lg); /* Keep image rounded if desired */
+}
+```
+
+**Alternative if you want to keep rounded corners on the artwork:**
+
+📁 **File:** `src/components/Player/Equalizer.css`
+
+➕ **ADD THIS RULE:**
+```css
+.equalizer__canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0.75;
+  mix-blend-mode: screen;
+  /* Prevent canvas from being clipped by parent's border-radius */
+  border-radius: 0 !important;
+}
+```
+
+---
+
+### Fix 2: Mirror Frequency Distribution for Symmetry
 
 📁 **File:** `src/components/Player/Equalizer.tsx`
 
-#### Fix 1: Correct Bass Position (Use Positive π/2)
+This is the key fix - we'll create a **mirrored frequency distribution** where:
+- Bottom (bar 0) = Bass
+- Left side = mirrors right side
+- Top = Highs
+- Creates perfect symmetry
 
 🔍 **FIND:**
 ```typescript
-      // Calculate angle for this bar (in radians)
-      // Start at bottom (270° = -π/2) and rotate clockwise
-      // This positions bass frequencies at the bottom
-      const angleOffset = -Math.PI / 2; // Start at bottom (270° = -90°)
-      const angle = angleOffset + (i / barCount) * Math.PI * 2;
+      // Map frequency data with bass at bottom
+      // Lower indices = bass, higher indices = treble
+      // Distribute across full frequency spectrum
+      const dataIndex = Math.floor((i / barCount) * frequencyData.length * 0.6);
+      const amplitude = frequencyData[dataIndex] / 255; // Normalize to 0-1
 ```
 
 ✏️ **REPLACE WITH:**
 ```typescript
-      // Calculate angle for this bar (in radians)
-      // Start at bottom (π/2 = 90° in canvas coordinates where Y increases downward)
-      // This positions bass frequencies at the bottom
-      const angleOffset = Math.PI / 2; // Start at bottom (90° in canvas Y-down coordinates)
-      const angle = angleOffset + (i / barCount) * Math.PI * 2;
+      // Create mirrored frequency distribution for symmetry
+      // Map bars to frequency spectrum with mirroring around vertical axis
+      
+      // Normalize bar position to 0-1 (where we are in the circle)
+      const normalizedPosition = i / barCount;
+      
+      // Create symmetrical distribution:
+      // - Bottom (0.0) = Bass (low frequencies)
+      // - Sides (0.25, 0.75) = Mids (medium frequencies)
+      // - Top (0.5) = Highs (high frequencies)
+      // - Mirror left and right sides for balance
+      
+      let frequencyPosition;
+      if (normalizedPosition <= 0.5) {
+        // First half: bottom → top (0 to 0.5)
+        // Maps to frequencies: bass → highs
+        frequencyPosition = normalizedPosition * 2; // 0 to 1
+      } else {
+        // Second half: top → bottom (0.5 to 1.0)
+        // Mirror the first half for symmetry
+        frequencyPosition = (1.0 - normalizedPosition) * 2; // 1 back to 0
+      }
+      
+      // Map to frequency array (use lower 50% of spectrum for better visualization)
+      const dataIndex = Math.floor(frequencyPosition * frequencyData.length * 0.5);
+      const amplitude = frequencyData[dataIndex] / 255; // Normalize to 0-1
+```
+
+**How This Creates Symmetry:**
+
+```
+Bar Position → Frequency Position → Result
+
+Bar 0   (0.00) → 0.00 → Bass (loudest)
+Bar 18  (0.125) → 0.25 → Low-mids
+Bar 36  (0.25) → 0.50 → Mids
+Bar 54  (0.375) → 0.75 → Mid-highs
+Bar 72  (0.50) → 1.00 → Highs (top)
+Bar 90  (0.625) → 0.75 → Mid-highs (MIRROR)
+Bar 108 (0.75) → 0.50 → Mids (MIRROR)
+Bar 126 (0.875) → 0.25 → Low-mids (MIRROR)
+Bar 144 (1.00) → 0.00 → Bass (back to start)
+
+Result: Left side = Right side (perfect symmetry)
 ```
 
 ---
 
-#### Fix 2: Use Diagonal Distance for Bar Length Calculation
+### Fix 3: Increase Outer Radius to Compensate for Corner Distance
+
+📁 **File:** `src/components/Player/Equalizer.tsx`
+
+If corners still don't quite reach after fixing CSS, increase the outer radius:
 
 🔍 **FIND:**
 ```typescript
-    // Use full diagonal distance for corners to extend properly
-    const maxDimension = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
-    const outerRadius = maxDimension * 0.68; // Start from outer edge (including corners)
-    const maxBarLength = Math.min(rect.width, rect.height) * 0.22; // How far bars extend inward (reduced)
-```
-
-✏️ **REPLACE WITH:**
-```typescript
-    // Use full diagonal distance for corners to extend properly
     const maxDimension = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
     const outerRadius = maxDimension * 0.70; // Start from outer edge (including corners)
-    const maxBarLength = maxDimension * 0.25; // Bar length also uses diagonal (so corners reach properly)
 ```
 
-**Key Changes:**
-- `maxBarLength` now uses `maxDimension` instead of `Math.min(width, height)`
-- This allows corner bars (at 45°, 135°, 225°, 315°) to extend properly
-- Adjusted multipliers: `outerRadius` from 0.68 → 0.70, `maxBarLength` from 0.22 → 0.25
+✏️ **REPLACE WITH:**
+```typescript
+    const maxDimension = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
+    const outerRadius = maxDimension * 0.85; // Increased to ensure corner coverage
+```
+
+**Explanation:**
+- Increased from 0.70 to 0.85 (21% further out)
+- Bars will start closer to the actual corners
+- Combined with removed border-radius, corners should be fully covered
 
 ---
 
-## UNDERSTANDING THE ANGLE FIX
+## VISUAL RESULTS
 
-### Canvas Coordinate System:
+### Before Mirroring:
 ```
-Standard Math:          Canvas Reality:
-     
-     90° (Top)              0° (Right)
-      ↑                        →
-      │                        
-180° ←─→ 0° (Right)    90° ─┐    
-      │                      ↓
-     270° (Bottom)        (Bottom)
-     
-Y increases UP         Y increases DOWN
+      Highs
+       ─── (short)
+     ──   ──
+    ──  🔥  ──
+   ──   ART  ── (medium)
+    ██      ██ (medium)
+     ███████ (TALL - bass)
+   Asymmetric/Unbalanced
 ```
 
-### Why `Math.PI / 2` Works:
-
-In **canvas coordinates** where Y increases downward:
-- `0°` (0 radians) → Points RIGHT
-- `Math.PI / 2` (90°) → Points DOWN (bottom) ← **Bass here!**
-- `Math.PI` (180°) → Points LEFT
-- `Math.PI * 1.5` (270°) → Points UP (top)
-
-With `angleOffset = Math.PI / 2`:
+### After Mirroring:
 ```
-Bar 0   → 90° + 0° = 90° → BOTTOM (Bass) 🔊
-Bar 36  → 90° + 90° = 180° → LEFT (Mids)
-Bar 72  → 90° + 180° = 270° → TOP (Highs)
-Bar 108 → 90° + 270° = 360° → RIGHT (Highs)
-Bar 144 → 90° + 360° = 450° (= 90°) → Back to BOTTOM
+      Highs
+       ─── (medium)
+     ──   ── (tall)
+    ██  🔥  ██ (tall)
+   ██   ART  ██ (tall)
+    ██      ██ (tall)
+     ███████ (TALL - bass)
+    Symmetric/Balanced
 ```
+
+Left side = Right side (both tall)
+Bottom = Bass (tallest)
+Top = Highs (shortest)
 
 ---
 
-## VISUAL RESULT
+## FREQUENCY DISTRIBUTION COMPARISON
 
-### Before Fixes:
+### Old Linear Distribution:
 ```
-     ███ ← Bass (WRONG!)
-   ██   ██
-  ██  🔥  ██
- ██   ART  ██   Corner bars
-  ██      ██    truncated → ██
-   ██   ██
-     ─────
-```
+Position around circle:
+0° (bottom) ━━━━━━━ Bass (index 0)
+45°         ━━━━━ Low-mid (index 43)
+90° (right) ━━━ Mid (index 86)
+135°        ━━ High-mid (index 129)
+180° (top)  ━ High (index 172)
+225°        ━━ High (index 215) ← different from 135°
+270° (left) ━━━ Mid (index 258) ← different from 90°
+315°        ━━━━━ Low (index 301) ← different from 45°
 
-### After Fixes:
-```
-     ─────
-   ──   ──
-  ──  🔥  ──   Corners reach
- ──   ART  ──  edges fully
-  ██      ██
-   ██   ██
-     ███ ← Bass (CORRECT!) 🔊
+Result: Asymmetric, right ≠ left
 ```
 
----
-
-## CORNER BAR MATH EXPLANATION
-
-### Problem:
-```typescript
-outerRadius = diagonal * 0.68  ✅ Correct (reaches corners)
-maxBarLength = min(w,h) * 0.22 ❌ Wrong (limits corners)
+### New Mirrored Distribution:
 ```
+Position around circle:
+0° (bottom)  ━━━━━━━ Bass (index 0)
+45°          ━━━━━ Low-mid (index 64)
+90° (right)  ━━━ Mid (index 128)
+135°         ━━ High (index 192)
+180° (top)   ━ Highest (index 256)
+225°         ━━ High (index 192) ← SAME as 135° ✅
+270° (left)  ━━━ Mid (index 128) ← SAME as 90° ✅
+315°         ━━━━━ Low-mid (index 64) ← SAME as 45° ✅
 
-**For a 500x500 canvas:**
-- `diagonal = √(500² + 500²) / 2 = 353.5`
-- `outerRadius = 353.5 * 0.68 = 240.4` (reaches corners)
-- Old `maxBarLength = 500 * 0.22 = 110` (too short for corners)
-
-**Corner bar at 45°:**
-- Starts at: `(centerX + cos(45°) * 240, centerY + sin(45°) * 240)`
-- Ends at: `(centerX + cos(45°) * (240 - 110), centerY + sin(45°) * (240 - 110))`
-- Distance from corner: **Too far!** Doesn't reach edge
-
-### Solution:
-```typescript
-outerRadius = diagonal * 0.70  ✅ 
-maxBarLength = diagonal * 0.25 ✅ Both use diagonal now
+Result: Perfect symmetry, right = left ✅
 ```
-
-**For same 500x500 canvas:**
-- `diagonal = 353.5`
-- `outerRadius = 353.5 * 0.70 = 247.5` (reaches corners)
-- New `maxBarLength = 353.5 * 0.25 = 88.4` (shorter but proportional)
-
-**Corner bar at 45°:**
-- Starts at: `(centerX + cos(45°) * 247.5, centerY + sin(45°) * 247.5)`
-- Ends at: `(centerX + cos(45°) * (247.5 - 88.4), centerY + sin(45°) * (247.5 - 88.4))`
-- Distance from corner: **Perfect!** Reaches the edge
-
----
-
-## PARAMETER ADJUSTMENTS WITH 144 BARS
-
-With 144 bars, you have **much smoother** circular coverage (2.5° per bar):
-
-```typescript
-ctx.lineWidth = Math.max(2.5, (Math.PI * 2 * outerRadius) / barCount * 0.65);
-//                                                                        ^^^^
-// With 144 bars, this will be ~2.5px (minimum kicks in)
-```
-
-**Optional:** Increase the width multiplier for slightly thicker bars:
-
-```typescript
-ctx.lineWidth = Math.max(2, (Math.PI * 2 * outerRadius) / barCount * 0.75);
-//                          ^^                                        ^^^^
-// min = 2px (thinner minimum)
-// multiplier = 0.75 (20% thicker)
-```
-
-This will make the 144 bars slightly more visible without creating gaps.
 
 ---
 
 ## VALIDATION CHECKLIST
 
-After applying these fixes:
+After implementing all fixes:
 
-- [ ] **Bass at bottom** - Bar 0 (first bar drawn) appears at 6 o'clock position
-- [ ] **Heavy bass pulsing at bottom** - Play bass-heavy track, bottom bars should dominate
-- [ ] **Corner bars reach edges** - Check bars at ~45°, 135°, 225°, 315° positions
-- [ ] **No gaps in corners** - Smooth coverage from top-right to bottom-right quadrants
-- [ ] **Artwork fully visible** - Fire and figure silhouette clear in center
-- [ ] **Smooth 144-bar circle** - No visible gaps between individual bars
-- [ ] **Balanced appearance** - No single side/quadrant dominates visually
+- [ ] **Corners reached** - Bars at 45°, 135°, 225°, 315° extend to canvas edges
+- [ ] **No border-radius clipping** - Canvas or container doesn't cut off bars
+- [ ] **Left equals right** - Both sides have identical bar heights at any moment
+- [ ] **Top equals center** - Bars mirror vertically as well
+- [ ] **Bass at bottom** - Heaviest bars remain at 6 o'clock position
+- [ ] **Smooth gradient** - Frequency transitions smoothly around the circle
+- [ ] **Balanced appearance** - No single side dominates visually
+- [ ] **Symmetrical pulsing** - Bars pulse in mirror pairs (left/right)
+
+
+---
+
+## ADVANCED OPTION: Logarithmic Frequency Distribution
+
+If you want even more refined frequency distribution (optional):
+
+```typescript
+// More perceptually accurate frequency mapping
+let frequencyPosition;
+if (normalizedPosition <= 0.5) {
+  // Use logarithmic scale for better frequency separation
+  frequencyPosition = Math.pow(normalizedPosition * 2, 1.5); // Emphasize bass
+} else {
+  frequencyPosition = Math.pow((1.0 - normalizedPosition) * 2, 1.5);
+}
+```
+
+This emphasizes bass frequencies more while spreading highs better, creating an even more balanced appearance.
 
 ---

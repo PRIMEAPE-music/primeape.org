@@ -59,7 +59,7 @@ const Equalizer: React.FC<EqualizerProps> = ({
     const centerY = rect.height / 2;
     // Use full diagonal distance for corners to extend properly
     const maxDimension = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
-    const outerRadius = maxDimension * 0.70; // Start from outer edge (including corners)
+    const outerRadius = maxDimension * 0.85; // Increased to ensure corner coverage
     const maxBarLength = maxDimension * 0.25; // Bar length also uses diagonal (so corners reach properly)
     // Get color from CSS variable
     const styles = getComputedStyle(canvas);
@@ -73,10 +73,32 @@ const Equalizer: React.FC<EqualizerProps> = ({
       const angleOffset = Math.PI / 2; // Start at bottom (90° in canvas Y-down coordinates)
       const angle = angleOffset + (i / barCount) * Math.PI * 2;
 
-      // Map frequency data with bass at bottom
-      // Lower indices = bass, higher indices = treble
-      // Distribute across full frequency spectrum
-      const dataIndex = Math.floor((i / barCount) * frequencyData.length * 0.6);
+      // Create mirrored frequency distribution for symmetry
+      // Map bars to frequency spectrum with mirroring around vertical axis
+      
+      // Normalize bar position to 0-1 (where we are in the circle)
+      const normalizedPosition = i / barCount;
+      
+      // Create symmetrical distribution:
+      // - Bottom (0.0) = Bass (low frequencies)
+      // - Sides (0.25, 0.75) = Mids (medium frequencies)
+      // - Top (0.5) = Highs (high frequencies)
+      // - Mirror left and right sides for balance
+      
+      let frequencyPosition;
+      if (normalizedPosition <= 0.5) {
+        // First half: bottom → top (0 to 0.5)
+        // Maps to frequencies: bass → highs
+        // Use logarithmic scale for better frequency separation
+        frequencyPosition = Math.pow(normalizedPosition * 2, 1.5); // Emphasize bass
+      } else {
+        // Second half: top → bottom (0.5 to 1.0)
+        // Mirror the first half for symmetry
+        frequencyPosition = Math.pow((1.0 - normalizedPosition) * 2, 1.5);
+      }
+      
+      // Map to frequency array (use lower 50% of spectrum for better visualization)
+      const dataIndex = Math.floor(frequencyPosition * frequencyData.length * 0.5);
       const amplitude = frequencyData[dataIndex] / 255; // Normalize to 0-1
       
       // Calculate bar length based on amplitude
