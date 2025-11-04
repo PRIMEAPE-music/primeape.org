@@ -183,7 +183,7 @@
 
 @media (max-width: 768px) {
   .player {
-    padding-top: var(--space-xs); /* Reduce top gap to header */
+    padding-top: 0; /* Remove all top padding */
     padding-right: var(--space-md);
     padding-bottom: var(--space-md);
     padding-left: var(--space-md);
@@ -194,7 +194,7 @@
     padding-right: var(--space-sm);
     padding-bottom: var(--space-md);
     padding-left: var(--space-sm);
-    gap: var(--space-sm); /* Keep existing gap */
+    gap: var(--space-sm); /* Keep gap to prevent collisions */
   }
 
   /* Ensure center column is full-width responsive on mobile */
