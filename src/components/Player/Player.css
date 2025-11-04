@@ -183,14 +183,20 @@
 
 @media (max-width: 768px) {
   .player {
-    padding: var(--space-xs) var(--space-md); /* Minimal top/bottom padding */
+    padding-top: var(--space-xs); /* Reduce top gap to header */
+    padding-right: var(--space-md);
+    padding-bottom: var(--space-md);
+    padding-left: var(--space-md);
   }
 
   .player__main-area {
-    padding: 0 var(--space-sm); /* Remove vertical padding, keep horizontal */
-    gap: var(--space-xs); /* Minimal gap */
+    padding-top: 0; /* Remove top padding */
+    padding-right: var(--space-sm);
+    padding-bottom: var(--space-md);
+    padding-left: var(--space-sm);
+    gap: var(--space-sm); /* Keep existing gap */
   }
-  
+
   /* Ensure center column is full-width responsive on mobile */
   .player__center-column {
     width: 100%;
