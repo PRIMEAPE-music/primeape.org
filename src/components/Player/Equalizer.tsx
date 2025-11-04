@@ -54,13 +54,13 @@ const Equalizer: React.FC<EqualizerProps> = ({
     if (!isPlaying) return; // Don't draw if not playing
 
     // Configuration
-    const barCount = 144; // Number of bars radiating (increased for smoother circle)
+    const barCount = 288; // Number of bars radiating (increased for smoother circle)
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
     // Use full diagonal distance for corners to extend properly
     const maxDimension = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
-    const outerRadius = maxDimension * 0.85; // Increased to ensure corner coverage
-    const maxBarLength = maxDimension * 0.25; // Bar length also uses diagonal (so corners reach properly)
+    const outerRadius = maxDimension * 0.98; // Maximum extension (reaches corners)
+    const maxBarLength = maxDimension * 0.32; // Longer bars for better visibility
     // Get color from CSS variable
     const styles = getComputedStyle(canvas);
     const barColor = styles.getPropertyValue('--color-active').trim() || '#fff';
@@ -99,11 +99,20 @@ const Equalizer: React.FC<EqualizerProps> = ({
       
       // Map to frequency array (use lower 50% of spectrum for better visualization)
       const dataIndex = Math.floor(frequencyPosition * frequencyData.length * 0.5);
-      const amplitude = frequencyData[dataIndex] / 255; // Normalize to 0-1
+      let amplitude = frequencyData[dataIndex] / 255; // Normalize to 0-1
+      
+      // Amplify high frequencies for better visibility
+      // High frequencies (top of circle) naturally have lower amplitude than bass
+      // Apply frequency-dependent gain to make them visible
+      const frequencyGain = 1.0 + (frequencyPosition * 2.5); // 1x at bass, 3.5x at highs
+      amplitude = Math.min(1.0, amplitude * frequencyGain); // Clamp to 1.0 max
       
       // Calculate bar length based on amplitude
       // Bars extend INWARD from outer edge
-      const minLength = maxBarLength * 0.15; // Minimum visible length
+      // Calculate frequency-dependent minimum length
+      // Bass can disappear fully when silent, highs stay more visible
+      const frequencyMinMultiplier = 0.15 + (frequencyPosition * 0.10); // 15% bass, 25% highs
+      const minLength = maxBarLength * frequencyMinMultiplier;
       const barLength = minLength + (amplitude * (maxBarLength - minLength));
       
       // Calculate bar endpoints (FROM outer radius TOWARD center)
