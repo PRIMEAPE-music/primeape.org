@@ -54,12 +54,13 @@ const Equalizer: React.FC<EqualizerProps> = ({
     if (!isPlaying) return; // Don't draw if not playing
 
     // Configuration
-    const barCount = 36; // Number of bars radiating (increased for smoother circle)
+    const barCount = 144; // Number of bars radiating (increased for smoother circle)
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
-    const outerRadius = Math.min(rect.width, rect.height) * 0.48; // Start from outer edge
-    const maxBarLength = Math.min(rect.width, rect.height) * 0.28; // How far bars extend inward
-
+    // Use full diagonal distance for corners to extend properly
+    const maxDimension = Math.sqrt(rect.width * rect.width + rect.height * rect.height) / 2;
+    const outerRadius = maxDimension * 0.68; // Start from outer edge (including corners)
+    const maxBarLength = Math.min(rect.width, rect.height) * 0.22; // How far bars extend inward (reduced)
     // Get color from CSS variable
     const styles = getComputedStyle(canvas);
     const barColor = styles.getPropertyValue('--color-active').trim() || '#fff';
@@ -67,11 +68,11 @@ const Equalizer: React.FC<EqualizerProps> = ({
     // Draw inverted radial bars
     for (let i = 0; i < barCount; i++) {
       // Calculate angle for this bar (in radians)
-      // Start at bottom (270° = 3π/2) and rotate clockwise
+      // Start at bottom (270° = -π/2) and rotate clockwise
       // This positions bass frequencies at the bottom
-      const angleOffset = Math.PI * 1.5; // Start at bottom (270°)
+      const angleOffset = -Math.PI / 2; // Start at bottom (270° = -90°)
       const angle = angleOffset + (i / barCount) * Math.PI * 2;
-      
+
       // Map frequency data with bass at bottom
       // Lower indices = bass, higher indices = treble
       // Distribute across full frequency spectrum
