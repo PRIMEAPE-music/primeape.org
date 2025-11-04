@@ -31,7 +31,7 @@ const Equalizer: React.FC<EqualizerProps> = ({
   // Get frequency data
   const { frequencyData } = useEqualizer(audioContext, sourceNode, isPlaying);
 
-  // Render equalizer bars
+  // Render inverted radial equalizer (bars extend inward)
   useEffect(() => {
     if (!isVisible) return;
     
@@ -54,38 +54,63 @@ const Equalizer: React.FC<EqualizerProps> = ({
     if (!isPlaying) return; // Don't draw if not playing
 
     // Configuration
-    const barCount = 24; // Number of bars to display
-    const barWidth = rect.width / barCount;
-    const barGap = barWidth * 0.15;
-    const actualBarWidth = barWidth - barGap;
+    const barCount = 36; // Number of bars radiating (increased for smoother circle)
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const outerRadius = Math.min(rect.width, rect.height) * 0.48; // Start from outer edge
+    const maxBarLength = Math.min(rect.width, rect.height) * 0.28; // How far bars extend inward
 
     // Get color from CSS variable
     const styles = getComputedStyle(canvas);
     const barColor = styles.getPropertyValue('--color-active').trim() || '#fff';
 
-    // Draw bars
+    // Draw inverted radial bars
     for (let i = 0; i < barCount; i++) {
-      // Sample frequency data (logarithmic distribution for better visualization)
-      const dataIndex = Math.floor((i / barCount) * frequencyData.length * 0.4); // Use lower 40% of frequencies
+      // Calculate angle for this bar (in radians)
+      // Start at bottom (270° = 3π/2) and rotate clockwise
+      // This positions bass frequencies at the bottom
+      const angleOffset = Math.PI * 1.5; // Start at bottom (270°)
+      const angle = angleOffset + (i / barCount) * Math.PI * 2;
+      
+      // Map frequency data with bass at bottom
+      // Lower indices = bass, higher indices = treble
+      // Distribute across full frequency spectrum
+      const dataIndex = Math.floor((i / barCount) * frequencyData.length * 0.6);
       const amplitude = frequencyData[dataIndex] / 255; // Normalize to 0-1
       
-      // Calculate bar height
-      const minHeight = rect.height * 0.05;
-      const maxHeight = rect.height * 0.9;
-      const barHeight = minHeight + (amplitude * (maxHeight - minHeight));
+      // Calculate bar length based on amplitude
+      // Bars extend INWARD from outer edge
+      const minLength = maxBarLength * 0.15; // Minimum visible length
+      const barLength = minLength + (amplitude * (maxBarLength - minLength));
+      
+      // Calculate bar endpoints (FROM outer radius TOWARD center)
+      const startX = centerX + Math.cos(angle) * outerRadius;
+      const startY = centerY + Math.sin(angle) * outerRadius;
+      const endX = centerX + Math.cos(angle) * (outerRadius - barLength);
+      const endY = centerY + Math.sin(angle) * (outerRadius - barLength);
 
-      // Position bar at bottom
-      const x = i * barWidth;
-      const y = rect.height - barHeight;
+      // Draw bar with gradient (from outer edge toward center)
+      const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+      gradient.addColorStop(0, barColor + '80'); // More transparent at outer edge
+      gradient.addColorStop(1, barColor); // Solid at inner edge (near artwork)
 
-      // Draw bar with gradient
-      const gradient = ctx.createLinearGradient(0, y, 0, rect.height);
-      gradient.addColorStop(0, barColor);
-      gradient.addColorStop(1, barColor + '80'); // Add transparency
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = Math.max(2.5, (Math.PI * 2 * outerRadius) / barCount * 0.65); // Bar width
+      ctx.lineCap = 'round'; // Rounded bar ends
 
-      ctx.fillStyle = gradient;
-      ctx.fillRect(x, y, actualBarWidth, barHeight);
+      // Draw the bar
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
     }
+
+    // Optional: Draw subtle outer ring for visual frame
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, outerRadius, 0, Math.PI * 2);
+    ctx.strokeStyle = barColor + '20'; // Very subtle
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }, [frequencyData, isPlaying, isVisible]);
 
   if (!isVisible) return null;
