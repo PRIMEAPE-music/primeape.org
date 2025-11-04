@@ -162,8 +162,11 @@ const Player: React.FC = () => {
           />
         </div>
 
-        {/* Central Column: Artwork + Track Info + Time + Waveform */}
+        {/* Center Column - Artwork + Track Info + Time + Waveform */}
         <div className="player__center-column">
+          {/* Album Title Above Artwork */}
+          <h3 className="player__album-title">{FOUNDATION_ALBUM.title}</h3>
+          
           {/* Album Artwork with Equalizer */}
           <Artwork 
             isPlaying={isPlaying}

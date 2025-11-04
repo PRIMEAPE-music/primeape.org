@@ -78,6 +78,17 @@
   margin: 0 auto;
 }
 
+/* Album title above artwork */
+.player__album-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0 0 var(--space-xs) 0;
+  text-align: center;
+}
+
 /* Ensure all children center relative to the waveform (widest element) */
 .player__center-column > * {
   width: 100%;
@@ -207,5 +218,10 @@
   /* Allow center column children to be responsive */
   .player__center-column > * {
     max-width: 100%;
+  }
+
+  /* Album title mobile size */
+  .player__album-title {
+    font-size: var(--font-size-xl);
   }
 }

@@ -161,7 +161,7 @@ export const FOUNDATION_ALBUM: Album = {
   title: 'FOUNDATION',
   artist: 'PRIMEAPE',
   releaseYear: 2025,
-  artworkUrl: '/artwork/foundation-cover.jpg', // Placeholder - update when artwork ready
+  artworkUrl: '/artwork/foundation-cover.png', // Placeholder - update when artwork ready
   tracks,
 };
 
