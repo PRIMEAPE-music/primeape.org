@@ -1,205 +1,113 @@
-# CORRECTION: Mobile Auto-Scroll Box Not Appearing After Panel Close
+# MOBILE: Reduce Gap Between Header and Album Artwork
 
 ## Issue
-On mobile, after opening and closing the full-screen lyrics panel with the X button, the auto-scroll lyrics box no longer appears. This is because the panel close sets state to 'hidden', and the integrated box checks for the 'integrated' state.
+On mobile, there's excessive white space between the header ("PRIMEAPE | FOUNDATION") and the album artwork. This space should be reduced for a more compact mobile layout.
 
 ## Root Cause
-The mobile lyrics panel's `onClose` handler calls `toggleLyrics`, which cycles the state to 'hidden' on mobile. However, the auto-scroll box (LyricsBox component) only shows when `lyricsDisplayState === 'integrated'`, so once the state is 'hidden', the box won't appear.
-
-## Solution
-The auto-scroll box should be independent of the panel state on mobile. On mobile, we want:
-- Panel toggles between 'hidden' and 'panel' 
-- Auto-scroll box (integrated) should still be accessible separately
-
-We need to decouple the mobile panel visibility from the integrated lyrics box state.
+The `.player` container has padding and the `.player__main-area` has additional padding that creates too much vertical space on mobile devices.
 
 ---
 
 ## File to Modify
 
-📁 **src/hooks/useLyrics.ts**
+📁 **src/components/Player/Player.css**
 
 ---
 
-## Change: Update toggle logic to allow integrated state on mobile
+## Change: Reduce mobile padding
 
 **FIND:**
-```typescript
-  // Toggle display state
-  // Desktop (≥1100px): panel → integrated → panel (no hidden state)
-  // Mobile (<1100px): hidden → panel → hidden (no integrated state)
-  const toggleDisplayState = () => {
-    setDisplayState(prev => {
-      let next: LyricsDisplayState;
-      
-      // Check if we're on desktop or mobile
-      const isDesktop = window.innerWidth >= 1100;
-      
-      if (isDesktop) {
-        // Desktop: toggle between panel and integrated (no hidden)
-        if (prev === 'panel') {
-          next = 'integrated';
-        } else {
-          next = 'panel';
-        }
-      } else {
-        // Mobile: toggle between hidden and panel (no integrated)
-        if (prev === 'hidden') {
-          next = 'panel';
-        } else {
-          next = 'hidden';
-        }
-      }
+```css
+@media (max-width: 768px) {
+  .player {
+    padding: var(--space-md);
+  }
 
-      // Save to localStorage
-      localStorage.setItem('primeape_lyrics_display', next);
-      
-      return next;
-    });
-  };
+  .player__main-area {
+    padding: var(--space-md) var(--space-sm); /* Add horizontal padding */
+    gap: var(--space-sm); /* Reduce gap on mobile */
+  }
 ```
 
 **REPLACE WITH:**
-```typescript
-  // Toggle display state
-  // Desktop (≥1100px): panel → integrated → panel (no hidden state)
-  // Mobile (<1100px): hidden → panel → integrated → hidden
-  const toggleDisplayState = () => {
-    setDisplayState(prev => {
-      let next: LyricsDisplayState;
-      
-      // Check if we're on desktop or mobile
-      const isDesktop = window.innerWidth >= 1100;
-      
-      if (isDesktop) {
-        // Desktop: toggle between panel and integrated (no hidden)
-        if (prev === 'panel') {
-          next = 'integrated';
-        } else {
-          next = 'panel';
-        }
-      } else {
-        // Mobile: cycle through all three states
-        if (prev === 'hidden') {
-          next = 'panel';
-        } else if (prev === 'panel') {
-          next = 'integrated';
-        } else {
-          next = 'hidden';
-        }
-      }
+```css
+@media (max-width: 768px) {
+  .player {
+    padding: var(--space-sm) var(--space-md); /* Reduce top/bottom padding */
+  }
 
-      // Save to localStorage
-      localStorage.setItem('primeape_lyrics_display', next);
-      
-      return next;
-    });
-  };
+  .player__main-area {
+    padding: var(--space-sm); /* Reduce all padding */
+    gap: var(--space-sm); /* Reduce gap on mobile */
+  }
 ```
 
 ---
 
-## Updated Mobile Behavior
+## Alternative: More Aggressive Reduction (If Needed)
 
-After this fix, mobile will work as follows:
-
-1. **First tap of lyrics button**: Shows full-screen panel (state: 'panel')
-2. **Tap X button**: Closes full-screen panel (state: 'integrated')
-3. **Auto-scroll box now visible**: The integrated lyrics box appears over waveform
-4. **Second tap of lyrics button**: Hides auto-scroll box (state: 'hidden')
-5. **Third tap**: Back to full-screen panel (state: 'panel')
-
-This gives mobile users access to both:
-- Full-screen lyrics panel for focused reading
-- Compact auto-scroll box for glanceable lyrics while controlling playback
-
----
-
-## Alternative Approach (If You Want Different Behavior)
-
-If you prefer the mobile panel's X button to set state to 'integrated' instead of toggling through states, we can modify the Player component instead:
-
-### Option B: Make X button set state to 'integrated' directly
-
-**File:** `src/components/Player/Player.tsx`
+If you want even less space on mobile, use this more aggressive version:
 
 **FIND:**
-```typescript
-      {/* Mobile/Tablet Lyrics Panel (< 1100px) */}
-      <div className="player__mobile-lyrics-panel">
-        {lyrics && lyricsDisplayState === 'panel' && (
-          <LyricsPanel
-            lines={lyrics.lines}
-            currentTime={currentTime}
-            isPlaying={isPlaying}
-            isVisible={true}
-            onClose={toggleLyrics}
-            onLineClick={(time) => seek(time)}
-            isMobile={true}
-            onPlayPause={togglePlayPause}
-            onPrevious={prevTrack}
-            onNext={nextTrack}
-            playbackState={playbackState}
-          />
-        )}
-      </div>
+```css
+@media (max-width: 768px) {
+  .player {
+    padding: var(--space-md);
+  }
+
+  .player__main-area {
+    padding: var(--space-md) var(--space-sm); /* Add horizontal padding */
+    gap: var(--space-sm); /* Reduce gap on mobile */
+  }
 ```
 
 **REPLACE WITH:**
-```typescript
-      {/* Mobile/Tablet Lyrics Panel (< 1100px) */}
-      <div className="player__mobile-lyrics-panel">
-        {lyrics && lyricsDisplayState === 'panel' && (
-          <LyricsPanel
-            lines={lyrics.lines}
-            currentTime={currentTime}
-            isPlaying={isPlaying}
-            isVisible={true}
-            onClose={() => {
-              // On mobile, closing panel should show integrated box instead of hiding
-              const isDesktop = window.innerWidth >= 1100;
-              if (!isDesktop) {
-                // Manually set to integrated state
-                localStorage.setItem('primeape_lyrics_display', 'integrated');
-                toggleLyrics(); // This will trigger re-render with new state
-              } else {
-                toggleLyrics();
-              }
-            }}
-            onLineClick={(time) => seek(time)}
-            isMobile={true}
-            onPlayPause={togglePlayPause}
-            onPrevious={prevTrack}
-            onNext={nextTrack}
-            playbackState={playbackState}
-          />
-        )}
-      </div>
+```css
+@media (max-width: 768px) {
+  .player {
+    padding: var(--space-xs) var(--space-md); /* Minimal top/bottom padding */
+  }
+
+  .player__main-area {
+    padding: 0 var(--space-sm); /* Remove vertical padding, keep horizontal */
+    gap: var(--space-xs); /* Minimal gap */
+  }
 ```
 
 ---
 
-## Recommendation
+## CSS Variable Reference
 
-**Use the first approach** (modifying `useLyrics.ts`) as it's cleaner and maintains consistency with how the toggle button works. This gives users a predictable cycle:
-
-Button tap 1 → Full panel  
-Button tap 2 → Auto-scroll box  
-Button tap 3 → Hidden  
-Button tap 4 → Full panel (cycle repeats)
+For context, here are the spacing values being used:
+- `var(--space-xs)` = 8px
+- `var(--space-sm)` = 12px  
+- `var(--space-md)` = 16px
+- `var(--space-lg)` = 24px
+- `var(--space-xl)` = 32px
 
 ---
 
 ## Testing After Fix
 
-### Mobile Behavior:
-- [ ] Tap lyrics button → Full-screen panel appears
-- [ ] Tap X button → Panel closes, auto-scroll box appears
-- [ ] Tap lyrics button again → Auto-scroll box disappears
-- [ ] Tap lyrics button again → Full-screen panel reappears
-- [ ] All three states cycle properly
+### Mobile (≤768px):
+- [ ] Less space between header and album artwork
+- [ ] Artwork still properly centered
+- [ ] No content touching screen edges
+- [ ] Comfortable tap targets maintained
+- [ ] Lyrics button and controls not cramped
 
-### Desktop Behavior (should be unchanged):
-- [ ] Panel always visible on right side
-- [ ] Button toggles auto-scroll box only
-- [ ] No regression in desktop functionality
+### Desktop (should be unchanged):
+- [ ] No regression in desktop spacing
+- [ ] Layout remains as before
+
+---
+
+## Recommendation
+
+**Start with the first approach** (using `var(--space-sm)` for padding). This provides a noticeable reduction while maintaining comfortable spacing. If you want it even tighter, apply the alternative with `var(--space-xs)`.
+
+The key changes:
+1. **Player padding**: Reduced top/bottom from 16px to 12px (or 8px)
+2. **Main area padding**: Reduced from 16px to 12px (or removed vertical entirely)
+
+This will make the mobile layout feel more compact and efficient without sacrificing usability.
