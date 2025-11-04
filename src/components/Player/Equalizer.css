@@ -10,12 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(
-    circle at center,
-    rgba(0, 0, 0, 0.2) 0%,
-    rgba(0, 0, 0, 0.4) 30%,
-    transparent 60%
-  );
+  /* Removed radial-gradient background - let artwork show through clearly */
 }
 
 .equalizer__canvas {
