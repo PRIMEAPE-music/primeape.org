@@ -183,14 +183,14 @@
 
 @media (max-width: 768px) {
   .player {
-    padding: var(--space-sm) var(--space-md); /* Reduce top/bottom padding */
+    padding: var(--space-xs) var(--space-md); /* Minimal top/bottom padding */
   }
 
   .player__main-area {
-    padding: var(--space-sm); /* Reduce all padding */
-    gap: var(--space-sm); /* Reduce gap on mobile */
+    padding: 0 var(--space-sm); /* Remove vertical padding, keep horizontal */
+    gap: var(--space-xs); /* Minimal gap */
   }
-
+  
   /* Ensure center column is full-width responsive on mobile */
   .player__center-column {
     width: 100%;
