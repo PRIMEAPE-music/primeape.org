@@ -77,7 +77,7 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
 
   // Toggle display state
   // Desktop (≥1100px): panel → integrated → panel (no hidden state)
-  // Mobile (<1100px): hidden → panel → hidden (no integrated state)
+  // Mobile (<1100px): hidden → panel → integrated → hidden
   const toggleDisplayState = () => {
     setDisplayState(prev => {
       let next: LyricsDisplayState;
@@ -93,9 +93,11 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
           next = 'panel';
         }
       } else {
-        // Mobile: toggle between hidden and panel (no integrated)
+        // Mobile: cycle through all three states
         if (prev === 'hidden') {
           next = 'panel';
+        } else if (prev === 'panel') {
+          next = 'integrated';
         } else {
           next = 'hidden';
         }
