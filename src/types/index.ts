@@ -95,3 +95,27 @@ export interface DownloadEvent {
   timestamp: number;
   userAgent: string;
 }
+
+// ============================================================================
+// CONTACT FORM TYPES (for Phase 6)
+// ============================================================================
+
+export type ContactFormTab = 'general' | 'booking';
+
+export type FormSubmissionState = 'idle' | 'submitting' | 'success' | 'error';
+
+export interface ContactFormData {
+  name: string;
+  email: string;
+  message: string;
+  formType: ContactFormTab; // Hidden field for Netlify
+}
+
+export interface ShowEvent {
+  id: string;
+  date: string; // ISO format date string
+  venue: string;
+  city: string;
+  state?: string;
+  ticketUrl?: string;
+}

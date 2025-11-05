@@ -1,0 +1,22 @@
+/* ============================================================================
+   CONTENT SECTIONS WRAPPER
+   ============================================================================ */
+
+.content-sections {
+  width: 100%;
+  max-width: var(--player-max-width);
+  margin: 0 auto;
+  padding: 0;
+}
+
+/* Ensure proper spacing between player and content sections */
+.content-sections {
+  margin-top: var(--space-2xl);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .content-sections {
+    margin-top: var(--space-xl);
+  }
+}

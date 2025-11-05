@@ -1,0 +1,177 @@
+/* ============================================================================
+   SHOWS SECTION
+   ============================================================================ */
+
+.shows-section {
+  width: 100%;
+  padding: var(--space-2xl) var(--space-md);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.shows-section__container {
+  max-width: var(--player-max-width);
+  margin: 0 auto;
+}
+
+.shows-section__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xl);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.shows-section__content {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Shows list */
+.shows-section__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-2xl) 0;
+}
+
+.shows-section__item {
+  display: flex;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-md);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal),
+    transform var(--transition-fast);
+}
+
+.shows-section__item:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-2px);
+}
+
+.shows-section__item:last-child {
+  margin-bottom: 0;
+}
+
+/* Date column */
+.shows-section__date {
+  flex-shrink: 0;
+  min-width: 120px;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-active);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Details column */
+.shows-section__details {
+  flex: 1;
+}
+
+.shows-section__venue {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xs);
+}
+
+.shows-section__location {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Call-to-action area */
+.shows-section__cta {
+  text-align: center;
+  padding: var(--space-xl);
+  background-color: var(--color-surface);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.shows-section__cta-text {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+}
+
+.shows-section__book-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md) var(--space-2xl);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-bg);
+  background-color: var(--color-active);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: all var(--transition-fast);
+}
+
+.shows-section__book-btn:hover {
+  background-color: var(--color-active-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.shows-section__book-btn:active {
+  transform: translateY(0);
+}
+
+.shows-section__book-btn:focus-visible {
+  outline: 2px solid var(--color-active);
+  outline-offset: 4px;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+/* Mobile */
+@media (max-width: 640px) {
+  .shows-section {
+    padding: var(--space-xl) var(--space-sm);
+  }
+
+  .shows-section__title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  .shows-section__item {
+    flex-direction: column;
+    gap: var(--space-sm);
+    padding: var(--space-md);
+  }
+
+  .shows-section__date {
+    min-width: auto;
+  }
+
+  .shows-section__cta {
+    padding: var(--space-lg);
+  }
+
+  .shows-section__book-btn {
+    width: 100%;
+    padding: var(--space-md);
+  }
+}

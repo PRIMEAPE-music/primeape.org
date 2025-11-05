@@ -1,0 +1,147 @@
+/* ============================================================================
+   ABOUT SECTION
+   ============================================================================ */
+
+.about-section {
+  width: 100%;
+  padding: var(--space-2xl) var(--space-md);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.about-section__container {
+  max-width: var(--player-max-width);
+  margin: 0 auto;
+}
+
+.about-section__title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-xl);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Content grid - bio on left, credits on right (desktop) */
+.about-section__content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-2xl);
+  align-items: start;
+}
+
+/* Bio text */
+.about-section__bio {
+  font-size: var(--font-size-base);
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.about-section__bio p {
+  margin-bottom: var(--space-lg);
+}
+
+.about-section__bio p:last-child {
+  margin-bottom: 0;
+}
+
+.about-section__bio em {
+  font-style: italic;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Credits section */
+.about-section__credits {
+  padding: var(--space-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.about-section__credits-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-md);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.about-section__credits-list {
+  margin: 0;
+  padding: 0;
+}
+
+.about-section__credit-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.about-section__credit-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.about-section__credit-item dt {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.about-section__credit-item dd {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+/* Tablet and below - stack bio and credits */
+@media (max-width: 968px) {
+  .about-section__content {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  .about-section__credits {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .about-section {
+    padding: var(--space-xl) var(--space-sm);
+  }
+
+  .about-section__title {
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  .about-section__bio {
+    font-size: var(--font-size-sm);
+  }
+
+  .about-section__credits {
+    padding: var(--space-md);
+  }
+}

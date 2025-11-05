@@ -1,0 +1,13 @@
+# Netlify configuration for PRIMEAPE website
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Forms configuration
+[build.environment]
+  NODE_VERSION = "18"
+
+# Enable Netlify Forms
+[[plugins]]
+  package = "@netlify/plugin-forms"
