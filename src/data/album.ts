@@ -125,8 +125,8 @@ const tracks: Track[] = [
     duration: 178,
     vocalFile: '/music/vocal/13-CACHE.mp3',
     instrumentalFile: '/music/instrumental/13-CACHE-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/13-CACHE.lrc',
+    hasVocals: true,
   },
   {
     id: 14,
