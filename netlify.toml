@@ -4,10 +4,9 @@
   publish = "dist"
   command = "npm run build"
 
-# Forms configuration
+# Build environment
 [build.environment]
   NODE_VERSION = "18"
 
-# Enable Netlify Forms
-[[plugins]]
-  package = "@netlify/plugin-forms"
+# Netlify Forms are automatically detected from the HTML
+# No plugin installation needed - Netlify detects the hidden form in index.html
