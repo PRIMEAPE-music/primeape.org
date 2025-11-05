@@ -122,7 +122,7 @@ const tracks: Track[] = [
   {
     id: 13,
     title: 'CACHE',
-    duration: 178,
+    duration: 177,
     vocalFile: '/music/vocal/13-CACHE.mp3',
     instrumentalFile: '/music/instrumental/13-CACHE-instrumental.mp3',
     lyricsFile: '/lyrics/13-CACHE.lrc',
