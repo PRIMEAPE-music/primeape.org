@@ -1,47 +1,28 @@
-# Mobile Tracklist - Fix Play Toggle & Initial Scroll Issues
+# Mobile Tracklist - Simplified Fixes for Click-to-Play and Scroll
 
 ## Issues Identified
 
-### Issue 1: Every Other Track Plays
-**Problem:** Clicking tracks alternates between playing and pausing
-**Root Cause:** The `handleTrackSelect` function has logic that toggles play/pause when clicking the same track. However, after a track loads, sometimes the state update timing causes the next click to be treated as "same track" when it shouldn't be.
+### Issue 1: Track Requires Two Clicks to Play
+**Problem:** The new auto-play effect is waiting for `playbackState === 'paused'`, but after loadTrack, the state might not be 'paused' yet, requiring a second interaction.
 
-### Issue 2: Page Scrolls to Tracklist on Load
-**Problem:** When site first loads (no track selected yet), page jumps down to tracklist
-**Root Cause:** The Tracklist component's auto-scroll effect runs even when `currentTrackId` is `null`, causing the mobile tracklist to scroll into view on page load.
+**Solution:** Simplify by calling play directly in loadTrack callback, avoiding the complex effect logic.
+
+### Issue 2: Page Still Jumps to Tracklist on Load
+**Problem:** Even with the hasScrolledRef, the initial track load (track ID 1) triggers the scroll effect.
+
+**Solution:** More aggressive prevention - don't auto-scroll at all on mobile for the first track selection, or disable auto-scroll entirely for mobile tracklist.
 
 ---
 
 ## Fix Instructions
 
-### Fix 1: Always Play New Track Selection (Don't Toggle)
+### Fix 1: Remove Complex Auto-Play Logic - Use Direct Approach
 
-The issue is in the Player component's `handleTrackSelect` logic. When selecting from the mobile tracklist, we should ALWAYS play the track, not toggle play/pause.
+Let's go back to basics and make it much simpler.
 
 #### File: `src/components/Player/Player.tsx`
 
 🔍 **FIND:**
-```tsx
-  // Handle track selection from tracklist
-  const handleTrackSelect = React.useCallback((trackId: number) => {
-    // If clicking the same track that's already loaded
-    if (trackId === currentTrackId) {
-      // Toggle play/pause
-      togglePlayPause();
-    } else {
-      // Load and play new track
-      loadTrack(trackId);
-      // Auto-play after a short delay to let track load
-      setTimeout(() => {
-        if (playbackState !== 'playing') {
-          togglePlayPause();
-        }
-      }, 100);
-    }
-  }, [currentTrackId, playbackState, togglePlayPause, loadTrack]);
-```
-
-✏️ **REPLACE WITH:**
 ```tsx
   // Handle track selection from tracklist
   const handleTrackSelect = React.useCallback((trackId: number) => {
@@ -79,40 +60,60 @@ The issue is in the Player component's `handleTrackSelect` logic. When selecting
   }, [currentTrackId, playbackState, togglePlayPause]);
 ```
 
+✏️ **REPLACE WITH:**
+```tsx
+  // Handle track selection from tracklist
+  const handleTrackSelect = React.useCallback((trackId: number) => {
+    // If clicking the same track that's already loaded
+    if (trackId === currentTrackId) {
+      // Toggle play/pause
+      togglePlayPause();
+    } else {
+      // Load new track
+      loadTrack(trackId);
+      
+      // Wait for track to be ready, then play
+      const audio = audioRef.current;
+      if (!audio) return;
+      
+      const playWhenReady = () => {
+        // Play as soon as metadata is loaded
+        audio.play().catch(err => {
+          console.error('Auto-play failed:', err);
+        });
+        audio.removeEventListener('canplay', playWhenReady);
+      };
+      
+      // If already can play, play immediately
+      if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
+        audio.play().catch(err => {
+          console.error('Auto-play failed:', err);
+        });
+      } else {
+        // Otherwise wait for canplay event
+        audio.addEventListener('canplay', playWhenReady, { once: true });
+      }
+    }
+  }, [currentTrackId, togglePlayPause, loadTrack, audioRef]);
+```
+
 **What Changed:**
-- Removed the `setTimeout` approach which was unreliable
-- Added a `useEffect` that watches for track changes and auto-plays when the new track is ready
-- Uses a ref to track previous track ID to distinguish between initial load and track changes
-- Only auto-plays when transitioning from one track to another (not on initial page load)
+- Removed the complex useEffect with refs and state watching
+- Directly uses audio element's `canplay` event to know when track is ready
+- Calls `audio.play()` directly instead of going through togglePlayPause
+- Checks if audio is already ready to avoid waiting unnecessarily
+- Uses `{ once: true }` to auto-remove the event listener
+- Much simpler and more predictable
 
 ---
 
-### Fix 2: Prevent Initial Auto-Scroll in Tracklist
+### Fix 2: Completely Prevent Auto-Scroll on Initial Load
 
-The tracklist should only auto-scroll when there's actually a track playing, not on initial page load.
+The most reliable way is to not scroll until explicitly told to by user interaction.
 
 #### File: `src/components/Tracklist/Tracklist.tsx`
 
 🔍 **FIND:**
-```tsx
-  // Auto-scroll to current track when it changes
-  useEffect(() => {
-    if (!currentTrackId) return;
-
-    const tracklist = tracklistRef.current;
-    const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
-
-    if (tracklist && currentTrackElement) {
-      // Scroll current track into view (centered if possible)
-      currentTrackElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [currentTrackId]);
-```
-
-✏️ **REPLACE WITH:**
 ```tsx
   // Track if this is the initial mount
   const hasScrolledRef = React.useRef(false);
@@ -145,28 +146,26 @@ The tracklist should only auto-scroll when there's actually a track playing, not
   }, [currentTrackId]);
 ```
 
-**What Changed:**
-- Added `hasScrolledRef` to track if auto-scroll has happened before
-- First scroll uses `behavior: 'auto'` (instant) to prevent jarring animation on page load
-- First scroll also uses `inline: 'nearest'` to be less aggressive
-- Subsequent track changes use smooth scrolling as before
-- This prevents the mobile tracklist from forcing the entire page to scroll on initial load
-
----
-
-### Alternative Fix 2 (Simpler): Only Scroll When Playing
-
-If the above still causes issues, here's a simpler approach - only scroll when a track is actively playing:
-
-#### File: `src/components/Tracklist/Tracklist.tsx`
-
-**ALTERNATIVE APPROACH - Use this instead if the above doesn't fully fix it:**
-
-🔍 **FIND:**
+✏️ **REPLACE WITH:**
 ```tsx
-  // Auto-scroll to current track when it changes
+  // Track if user has interacted (clicked a track)
+  const userHasInteractedRef = React.useRef(false);
+  const previousTrackIdRef = React.useRef<number | null>(null);
+
+  // Auto-scroll to current track when it changes (but only after user interaction)
   useEffect(() => {
     if (!currentTrackId) return;
+
+    // If track changed from one to another (not initial load), mark as interacted
+    if (previousTrackIdRef.current !== null && currentTrackId !== previousTrackIdRef.current) {
+      userHasInteractedRef.current = true;
+    }
+    
+    // Update the ref
+    previousTrackIdRef.current = currentTrackId;
+
+    // Only scroll if user has explicitly changed tracks
+    if (!userHasInteractedRef.current) return;
 
     const tracklist = tracklistRef.current;
     const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
@@ -181,170 +180,201 @@ If the above still causes issues, here's a simpler approach - only scroll when a
   }, [currentTrackId]);
 ```
 
+**What Changed:**
+- Uses `userHasInteractedRef` to track if user has clicked a track
+- Uses `previousTrackIdRef` to detect actual track changes (not initial load)
+- Only scrolls after `previousTrackIdRef` has been set (meaning at least one track change has occurred)
+- Completely prevents any scrolling on initial page load when track 1 loads by default
+- Once user clicks a track, subsequent changes will scroll normally
+
+---
+
+### Alternative Approach: Disable Auto-Scroll for Mobile Tracklist Only
+
+If you'd prefer, we can disable auto-scroll entirely for the mobile tracklist (since it's in ContentSections, not the player area where it's less important).
+
+#### File: `src/components/ContentSections/ContentSections.tsx`
+
+Add a prop to disable auto-scroll for the mobile instance:
+
+🔍 **FIND:**
+```tsx
+      {/* Mobile Tracklist - only visible on tablet/mobile */}
+      <div className="content-sections__mobile-tracklist">
+        <Tracklist
+          tracks={FOUNDATION_ALBUM.tracks}
+          currentTrackId={currentTrackId}
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          onTrackSelect={onTrackSelect}
+        />
+      </div>
+```
+
+✏️ **REPLACE WITH:**
+```tsx
+      {/* Mobile Tracklist - only visible on tablet/mobile */}
+      <div className="content-sections__mobile-tracklist">
+        <Tracklist
+          tracks={FOUNDATION_ALBUM.tracks}
+          currentTrackId={currentTrackId}
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          onTrackSelect={onTrackSelect}
+          disableAutoScroll={true}
+        />
+      </div>
+```
+
+#### File: `src/components/Tracklist/Tracklist.tsx`
+
+Add the prop to the interface and use it:
+
+🔍 **FIND:**
+```tsx
+interface TracklistProps {
+  tracks: Track[];
+  currentTrackId: number | null;
+  isPlaying: boolean;
+  isLoading: boolean;
+  onTrackSelect: (trackId: number) => void;
+}
+```
+
+✏️ **REPLACE WITH:**
+```tsx
+interface TracklistProps {
+  tracks: Track[];
+  currentTrackId: number | null;
+  isPlaying: boolean;
+  isLoading: boolean;
+  onTrackSelect: (trackId: number) => void;
+  disableAutoScroll?: boolean;
+}
+```
+
+🔍 **FIND:**
+```tsx
+const Tracklist: React.FC<TracklistProps> = ({
+  tracks,
+  currentTrackId,
+  isPlaying,
+  isLoading,
+  onTrackSelect,
+}) => {
+```
+
+✏️ **REPLACE WITH:**
+```tsx
+const Tracklist: React.FC<TracklistProps> = ({
+  tracks,
+  currentTrackId,
+  isPlaying,
+  isLoading,
+  onTrackSelect,
+  disableAutoScroll = false,
+}) => {
+```
+
+🔍 **FIND:**
+```tsx
+  // Auto-scroll to current track when it changes
+  useEffect(() => {
+    if (!currentTrackId) return;
+```
+
 ✏️ **REPLACE WITH:**
 ```tsx
   // Auto-scroll to current track when it changes
-  // Only scroll if user has interacted (track is playing or has played)
-  const hasInteractedRef = React.useRef(false);
-
   useEffect(() => {
-    // Mark as interacted once something is playing
-    if (isPlaying && !hasInteractedRef.current) {
-      hasInteractedRef.current = true;
-    }
-  }, [isPlaying]);
-
-  useEffect(() => {
-    // Don't scroll until user has started playback
-    if (!currentTrackId || !hasInteractedRef.current) return;
-
-    const tracklist = tracklistRef.current;
-    const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
-
-    if (tracklist && currentTrackElement) {
-      // Scroll current track into view (centered if possible)
-      currentTrackElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [currentTrackId, isPlaying]);
-```
-
-**What Changed:**
-- Only scrolls after `isPlaying` has been true at least once
-- Prevents any scrolling on initial page load when no track has played yet
-- More conservative approach - waits for explicit user interaction
-
-**Choose:** Try the first fix first. If the page still jumps to tracklist on load, use this alternative approach instead.
-
----
-
-## Additional Fix: Prevent Page-Level ScrollIntoView
-
-Sometimes `scrollIntoView` scrolls the entire page, not just the container. Let's ensure it only scrolls within the tracklist container.
-
-#### File: `src/components/Tracklist/Tracklist.css`
-
-➕ **ADD AFTER:** `.tracklist__content { ... }` styles
-
-```css
-
-/* Ensure tracklist container doesn't trigger page scroll */
-.tracklist {
-  /* Contain scroll behavior within this element */
-  overflow: clip; /* Prevents content from triggering parent scroll */
-}
-
-.tracklist__content {
-  /* Ensure this is the scroll container */
-  position: relative;
-  isolation: isolate; /* Creates new stacking context */
-}
+    if (!currentTrackId || disableAutoScroll) return;
 ```
 
 **What This Does:**
-- `overflow: clip` on the tracklist container prevents child scrollIntoView from affecting parent scroll
-- `isolation: isolate` ensures the scrollable area is treated independently
-
----
-
-## Summary of Changes
-
-### Play/Pause Fix:
-- Removed unreliable `setTimeout` approach
-- Added proper `useEffect` that auto-plays when new track finishes loading
-- Uses ref to track previous track and prevent auto-play on initial load
-- Result: Every track click loads and plays correctly
-
-### Initial Scroll Fix (Choose One):
-**Option 1 (Recommended):** First scroll is instant/non-animated
-- Prevents jarring animation on page load
-- Allows smooth scrolling for subsequent track changes
-
-**Option 2 (More Conservative):** Only scroll after user interaction
-- Completely prevents auto-scroll until first play
-- Most reliable way to prevent unwanted scrolling
-
-### CSS Enhancement:
-- Ensures scrollIntoView only affects tracklist container, not page scroll
-
----
-
-## Testing After Fixes
-
-### Play/Pause Testing:
-- [ ] Click track 1 in mobile tracklist → plays
-- [ ] Click track 2 → switches and plays
-- [ ] Click track 3 → switches and plays
-- [ ] Click track 4 → switches and plays
-- [ ] Every click should result in track playing (not alternating play/pause)
-- [ ] Clicking same track twice → toggles play/pause (this is correct behavior)
-
-### Initial Scroll Testing:
-- [ ] Fresh page load → page stays at top (doesn't jump to tracklist)
-- [ ] First track selection → tracklist scrolls to show that track
-- [ ] Subsequent tracks → smooth scrolling within tracklist
-- [ ] No impact on desktop tracklist behavior
-
-### Edge Cases:
-- [ ] Page load with no track → no scroll
-- [ ] Select first track → plays correctly
-- [ ] Select last track → plays correctly
-- [ ] Rapid clicking different tracks → each plays when ready
-
----
-
-## Technical Notes
-
-### Why setTimeout Was Unreliable:
-The previous approach used:
-```tsx
-setTimeout(() => {
-  if (playbackState !== 'playing') {
-    togglePlayPause();
-  }
-}, 100);
-```
-
-Problems:
-1. 100ms might not be enough for track to load
-2. Race conditions - state might change during timeout
-3. `playbackState` captured in closure might be stale
-
-### Why useEffect is Better:
-```tsx
-useEffect(() => {
-  if (currentTrackId !== previousId && playbackState === 'paused') {
-    togglePlayPause();
-  }
-}, [currentTrackId, playbackState]);
-```
-
-Benefits:
-1. Reacts to actual state changes (track loaded and ready)
-2. No arbitrary timeouts
-3. Prevents auto-play on initial page load with ref check
-4. More predictable and testable
-
-### ScrollIntoView on Page Load:
-The original code would scroll whenever `currentTrackId` changed, including:
-- Initial load when track 1 is loaded by default
-- Caused mobile tracklist to become visible and scroll page
-
-The fix ensures scrolling only happens:
-- After first user interaction (option 2), OR
-- Without animation on first scroll (option 1)
-- Only within tracklist container (CSS fix)
+- Completely disables auto-scroll for mobile tracklist
+- Desktop tracklist (in player) still auto-scrolls normally
+- Simplest solution - no complexity around tracking interaction
+- User can manually scroll mobile tracklist if needed
 
 ---
 
 ## Recommendation
 
-Apply fixes in this order:
-1. **Play/Pause fix** in Player.tsx (required)
-2. **Initial scroll fix Option 1** in Tracklist.tsx (try first)
-3. **CSS enhancement** in Tracklist.css (safety measure)
-4. If Option 1 doesn't fully work, try **Option 2** instead
+**Use this combination:**
 
-This should resolve both issues cleanly!
+1. **Fix 1 (Simplified Click-to-Play)** - REQUIRED
+   - Removes complex state watching
+   - Uses direct audio.play() with canplay event
+   - Should work on first click every time
+
+2. **Fix 2 (Interaction-Based Scroll)** - RECOMMENDED
+   - Prevents scroll until user explicitly changes tracks
+   - More natural behavior
+   - Doesn't scroll on initial page load
+
+**OR, if scroll is still problematic:**
+
+3. **Alternative Approach (Disable Mobile Auto-Scroll)** - SIMPLEST
+   - Just turns off auto-scroll for mobile tracklist
+   - Guarantees no page jumping
+   - Desktop still works normally
+
+---
+
+## Testing After Fixes
+
+### Click-to-Play:
+- [ ] Fresh page load
+- [ ] Click track 1 → plays immediately (not two clicks)
+- [ ] Click track 2 → plays immediately
+- [ ] Click track 3 → plays immediately
+- [ ] Click same track → toggles play/pause correctly
+
+### Page Load Scroll:
+- [ ] Fresh page load → page stays at top (doesn't jump)
+- [ ] Page loads showing player at top
+- [ ] Tracklist visible but not forcing scroll
+- [ ] First track click works and doesn't cause jarring scroll
+
+### Ongoing Behavior:
+- [ ] Switching tracks works smoothly
+- [ ] Desktop tracklist unaffected (still auto-scrolls)
+- [ ] Mobile tracklist shows current track indicator
+- [ ] No console errors
+
+---
+
+## Why This is Simpler
+
+### Previous Approach (Complex):
+```
+loadTrack → state changes → useEffect watches → checks conditions → togglePlayPause → more state changes → eventually plays
+```
+
+### New Approach (Simple):
+```
+loadTrack → wait for canplay event → audio.play() → done
+```
+
+Much more direct and predictable!
+
+---
+
+## Summary of Changes
+
+1. **Player.tsx handleTrackSelect:**
+   - Use audio element's `canplay` event directly
+   - Call `audio.play()` when ready
+   - No complex state watching or refs
+
+2. **Tracklist.tsx auto-scroll:**
+   - Track user interaction with refs
+   - Only scroll after first explicit track change
+   - Prevents initial page load scroll
+
+3. **Alternative (if needed):**
+   - Add `disableAutoScroll` prop to Tracklist
+   - Set to `true` for mobile instance only
+   - Simplest solution if other approaches still have issues
+
+Apply Fix 1 + Fix 2, and if scroll is still an issue, apply the Alternative Approach as well.

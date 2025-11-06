@@ -161,34 +161,33 @@ const Player: React.FC<PlayerProps> = ({
       // Toggle play/pause
       togglePlayPause();
     } else {
-      // Load and play new track
+      // Load new track
       loadTrack(trackId);
-      // Auto-play immediately after load starts
-      // The loadTrack sets state to 'loading', which will transition to 'paused' when ready
-      // We'll play as soon as it's ready via the effect below
+      
+      // Wait for track to be ready, then play
+      const audio = audioRef.current;
+      if (!audio) return;
+      
+      const playWhenReady = () => {
+        // Play as soon as metadata is loaded
+        audio.play().catch(err => {
+          console.error('Auto-play failed:', err);
+        });
+        audio.removeEventListener('canplay', playWhenReady);
+      };
+      
+      // If already can play, play immediately
+      if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
+        audio.play().catch(err => {
+          console.error('Auto-play failed:', err);
+        });
+      } else {
+        // Otherwise wait for canplay event
+        audio.addEventListener('canplay', playWhenReady, { once: true });
+      }
     }
-  }, [currentTrackId, togglePlayPause, loadTrack]);
-
-  // Auto-play when a new track finishes loading (for tracklist selections)
-  const previousTrackIdRef = React.useRef<number | null>(null);
-  React.useEffect(() => {
-    // When track changes and becomes ready to play
-    if (
-      currentTrackId !== null &&
-      currentTrackId !== previousTrackIdRef.current &&
-      playbackState === 'paused' &&
-      previousTrackIdRef.current !== null // Don't auto-play on initial load
-    ) {
-      // New track loaded and ready - auto-play it
-      togglePlayPause();
-    }
-    
-    // Update the ref
-    if (currentTrackId !== previousTrackIdRef.current) {
-      previousTrackIdRef.current = currentTrackId;
-    }
-  }, [currentTrackId, playbackState, togglePlayPause]);
-
+  }, [currentTrackId, togglePlayPause, loadTrack, audioRef]);
+  
   // Expose track selection handler to parent via ref
   React.useEffect(() => {
     if (trackSelectHandlerRef) {
