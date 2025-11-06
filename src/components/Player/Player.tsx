@@ -68,6 +68,7 @@ const Player: React.FC<PlayerProps> = ({
     isShuffled,
     repeatMode,
     error,
+    play,
     togglePlayPause,
     loadTrack,
     nextTrack,
@@ -164,29 +165,14 @@ const Player: React.FC<PlayerProps> = ({
       // Load new track
       loadTrack(trackId);
       
-      // Wait for track to be ready, then play
-      const audio = audioRef.current;
-      if (!audio) return;
-      
-      const playWhenReady = () => {
-        // Play as soon as metadata is loaded
-        audio.play().catch(err => {
-          console.error('Auto-play failed:', err);
-        });
-        audio.removeEventListener('canplay', playWhenReady);
-      };
-      
-      // If already can play, play immediately
-      if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
-        audio.play().catch(err => {
-          console.error('Auto-play failed:', err);
-        });
-      } else {
-        // Otherwise wait for canplay event
-        audio.addEventListener('canplay', playWhenReady, { once: true });
-      }
+      // Use the play() function from useAudioPlayer which properly manages state
+      // Add a tiny delay to ensure loadTrack's state updates have completed
+      setTimeout(() => {
+        play();
+      }, 50);
     }
-  }, [currentTrackId, togglePlayPause, loadTrack, audioRef]);
+  }, [currentTrackId, togglePlayPause, loadTrack, play]);  
+  
   // Expose track selection handler to parent via ref
   React.useEffect(() => {
     if (trackSelectHandlerRef) {
