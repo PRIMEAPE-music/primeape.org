@@ -54,11 +54,23 @@
 
 /* Icon styling */
 .media-links__icon {
-  font-size: var(--font-size-xl);
-  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.media-links__icon svg {
+  width: 100%;
+  height: 100%;
+  transition: transform var(--transition-fast);
+}
+
+/* Icon hover effect */
+.media-links__link:hover .media-links__icon svg {
+  transform: scale(1.1);
 }
 
 /* Text label */
@@ -94,30 +106,69 @@
   }
 
   .media-links__icon {
-    font-size: var(--font-size-lg);
+    width: 20px;
+    height: 20px;
   }
 }
 
-/* Mobile - vertical stack */
-@media (max-width: 480px) {
+/* Mobile - icon-only 2-row grid */
+@media (max-width: 640px) {
+  .media-links {
+    padding: var(--space-md) var(--space-sm);
+  }
+
   .media-links__container {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: var(--space-sm);
+    max-width: 400px;
   }
 
   .media-links__link {
+    display: flex;
+    align-items: center;
     justify-content: center;
     padding: var(--space-md);
-    border-bottom: 1px solid var(--color-border);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    aspect-ratio: 1;
   }
 
-  .media-links__link:last-child {
-    border-bottom: none;
+  .media-links__link:hover {
+    border-color: var(--color-active);
   }
 
-  /* Hide dividers on mobile (using column layout with borders) */
+  /* Hide text labels on mobile - icons only */
+  .media-links__text {
+    display: none;
+  }
+
+  /* Larger icons since no text */
+  .media-links__icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  /* Hide dividers on mobile */
   .media-links__divider {
     display: none;
+  }
+}
+
+/* Extra small mobile - tighter spacing */
+@media (max-width: 400px) {
+  .media-links__container {
+    gap: var(--space-xs);
+    max-width: 100%;
+  }
+
+  .media-links__link {
+    padding: var(--space-sm);
+  }
+
+  .media-links__icon {
+    width: 24px;
+    height: 24px;
   }
 }
