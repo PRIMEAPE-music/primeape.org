@@ -9,9 +9,9 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: 0; /* Remove rounding to allow corner bars */
+  border-radius: var(--radius-lg); /* Match image rounding */
   overflow: visible; /* Allow equalizer bars to extend beyond */
-  background-color: var(--color-border);
+  background-color: transparent; /* Remove gray background */
   box-shadow: var(--shadow-lg);
   transition: transform var(--transition-normal),
               box-shadow var(--transition-normal);

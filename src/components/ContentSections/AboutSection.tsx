@@ -4,7 +4,7 @@ import './AboutSection.css';
 /**
  * AboutSection Component
  * 
- * Displays artist bio and album credits.
+ * Displays artist bio in a centered single-column layout.
  * 
  * Phase 6C: Placeholder content
  * Future: Can be made dynamic with CMS or props
@@ -33,24 +33,6 @@ const AboutSection: React.FC = () => {
               with contemporary soundscapes, the album invites listeners to question, 
               reflect, and ultimately discover their own truths within the music.
             </p>
-          </div>
-
-          <div className="about-section__credits">
-            <h3 className="about-section__credits-title">Album Credits</h3>
-            <dl className="about-section__credits-list">
-              <div className="about-section__credit-item">
-                <dt>Lyrics</dt>
-                <dd>PRIMEAPE</dd>
-              </div>
-              <div className="about-section__credit-item">
-                <dt>Production</dt>
-                <dd>PRIMEAPE</dd>
-              </div>
-              <div className="about-section__credit-item">
-                <dt>Artwork</dt>
-                <dd>PRIMEAPE</dd>
-              </div>
-            </dl>
           </div>
         </div>
       </div>
