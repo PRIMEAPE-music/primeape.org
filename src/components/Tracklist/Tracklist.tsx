@@ -31,16 +31,6 @@ const Tracklist: React.FC<TracklistProps> = ({
   // Track if this is the initial mount
   const hasScrolledRef = useRef(false);
 
-  // Track if user has clicked a track (to enable auto-scroll)
-  const userHasClickedRef = React.useRef(false);
-  const previousTrackIdRef = React.useRef<number | null>(null);
-
-  // Mark that user clicked when onTrackSelect is called
-  const handleTrackClick = (trackId: number) => {
-    userHasClickedRef.current = true;
-    onTrackSelect(trackId);
-  };
-
   // Auto-scroll to current track when it changes
   useEffect(() => {
     if (!currentTrackId) return;
@@ -95,7 +85,7 @@ const Tracklist: React.FC<TracklistProps> = ({
               isCurrentTrack={track.id === currentTrackId}
               isPlaying={isPlaying}
               isLoading={isLoading && track.id === currentTrackId}
-              onClick={() => handleTrackClick(track.id)}
+              onClick={() => onTrackSelect(track.id)}
             />
           ))
         )}
