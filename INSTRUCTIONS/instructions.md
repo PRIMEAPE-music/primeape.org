@@ -1,204 +1,117 @@
-# Mobile Tracklist Repositioning - Below Player, Above Social Links
+# Mobile Tracklist Corrections - Fix Track Selection & Spacing
 
-## Objective
-Make the Tracklist component visible on mobile devices, positioned below the PlayerSection and above the MediaLinksBar in the ContentSections area. Desktop layout (tracklist on left side of player) remains completely unchanged.
+## Issues Identified
 
-## Scope
-- **Desktop (≥1100px):** No changes - tracklist stays on left side of player
-- **Tablet/Mobile (<1100px):** Show tracklist in ContentSections area, between PlayerSection and MediaLinksBar
+### Issue 1: Track Selection Not Working
+**Problem:** Clicking tracks in the mobile tracklist doesn't play or switch songs
+**Root Cause:** The state flow from App → PlayerSection → Player isn't properly connecting to the actual track loading logic. The `handleTrackSelect` callback needs to trigger the Player's internal track selection handler.
 
-## Current State
-- Tracklist is hidden on mobile/tablet via CSS: `.player__floating-box { display: none !important; }` at breakpoint <1099px
-- Tracklist is part of Player component's main area on desktop
-- ContentSections currently starts with MediaLinksBar
-
-## Target State
-- Desktop: Tracklist remains in player's left floating box (no changes)
-- Mobile: Tracklist appears as first item in ContentSections
-- Order on mobile: PlayerSection → Tracklist → MediaLinksBar → AboutSection → ShowsSection → ContactSection
+### Issue 2: Large Gap Below Tracklist
+**Problem:** Excessive spacing between the mobile tracklist and player controls
+**Root Cause:** ContentSections likely has top margin/padding that's adding to the tracklist's bottom padding, creating double spacing.
 
 ---
 
-## Files to Modify
-1. `src/components/ContentSections/ContentSections.tsx` - Add tracklist on mobile
-2. `src/components/ContentSections/ContentSections.css` - Style mobile tracklist container
-3. `src/components/Tracklist/Tracklist.css` - Add mobile-specific styles
+## Fix Instructions
 
----
+### Fix 1: Wire Up Track Selection Properly
 
-## Implementation Strategy
+The current implementation passes `onTrackSelectFromExternal` but never actually uses it to trigger track changes. We need to fix the Player component to properly handle external track selections.
 
-The tracklist needs to be rendered in TWO places:
-1. **Desktop:** Inside Player component (existing behavior - keep as-is)
-2. **Mobile:** Inside ContentSections component (new behavior)
-
-We'll use CSS to show/hide the appropriate instance at each breakpoint.
-
----
-
-## Modification Instructions
-
-### 1. ContentSections.tsx - Add Mobile Tracklist
-
-📁 File: `src/components/ContentSections/ContentSections.tsx`
-
-#### Change 1: Import Tracklist and Album Data
+#### File: `src/components/Player/Player.tsx`
 
 🔍 **FIND:**
 ```tsx
-import React from 'react';
-import MediaLinksBar from './MediaLinksBar';
-import AboutSection from './AboutSection';
-import ShowsSection from './ShowsSection';
-import ContactSection from './ContactSection';
-import './ContentSections.css';
+  // Handle external track selection (from mobile tracklist)
+  React.useEffect(() => {
+    if (onExternalTrackSelect) {
+      // Register the handler - this allows parent to trigger track selection
+      // Parent will call onExternalTrackSelect(trackId) which needs to trigger handleTrackSelect
+      // For this to work, we need to make handleTrackSelect available
+    }
+  }, [onExternalTrackSelect]);
 ```
 
 ✏️ **REPLACE WITH:**
 ```tsx
-import React from 'react';
-import MediaLinksBar from './MediaLinksBar';
-import AboutSection from './AboutSection';
-import ShowsSection from './ShowsSection';
-import ContactSection from './ContactSection';
-import Tracklist from '../Tracklist/Tracklist';
-import { FOUNDATION_ALBUM } from '@/data/album';
-import './ContentSections.css';
+  // Handle external track selection (from mobile tracklist)
+  // Store the handler reference so parent can trigger it
+  React.useEffect(() => {
+    // When external callback is provided, expose our internal handler
+    // This won't work directly - we need a different approach
+    // The callback needs to be triggered from the ContentSections component
+  }, [onExternalTrackSelect]);
 ```
 
-#### Change 2: Add Props Interface for Player State
+**This approach won't work cleanly. Let's use a better pattern:**
 
-➕ **ADD AFTER:** `import './ContentSections.css';`
-
-```tsx
-
-interface ContentSectionsProps {
-  currentTrackId: number | null;
-  isPlaying: boolean;
-  isLoading: boolean;
-  onTrackSelect: (trackId: number) => void;
-}
-```
-
-#### Change 3: Update Component Signature and Add Tracklist
+#### Better Approach: Use a Ref to Expose Track Selection
 
 🔍 **FIND:**
 ```tsx
-/**
- * ContentSections Component
- * 
- * Wrapper for all content sections below the player.
- * Renders sections in order: Media Links → About → Shows → Contact → Footer
- * 
- * Phase 6A: ✓ Basic structure
- * Phase 6B: ✓ MediaLinksBar
- * Phase 6C: ✓ AboutSection
- * Phase 6D: ✓ ShowsSection with scroll-to-contact
- * Phase 6E: ✓ ContactSection with Netlify Forms
- */
-const ContentSections: React.FC = () => {
+  // Handle track selection from tracklist
+  const handleTrackSelect = (trackId: number) => {
+    // If clicking the same track that's already loaded
+    if (trackId === currentTrackId) {
+      // Toggle play/pause
+      togglePlayPause();
+    } else {
+      // Load and play new track
+      loadTrack(trackId);
+      // Auto-play after a short delay to let track load
+      setTimeout(() => {
+        if (playbackState !== 'playing') {
+          togglePlayPause();
+        }
+      }, 100);
+    }
+  };
 ```
 
 ✏️ **REPLACE WITH:**
 ```tsx
-/**
- * ContentSections Component
- * 
- * Wrapper for all content sections below the player.
- * Renders sections in order: Tracklist (mobile only) → Media Links → About → Shows → Contact → Footer
- * 
- * Phase 6A: ✓ Basic structure
- * Phase 6B: ✓ MediaLinksBar
- * Phase 6C: ✓ AboutSection
- * Phase 6D: ✓ ShowsSection with scroll-to-contact
- * Phase 6E: ✓ ContactSection with Netlify Forms
- * Mobile Enhancement: ✓ Tracklist visible below player on mobile
- */
-const ContentSections: React.FC<ContentSectionsProps> = ({
-  currentTrackId,
-  isPlaying,
-  isLoading,
-  onTrackSelect,
-}) => {
-```
+  // Handle track selection from tracklist
+  const handleTrackSelect = React.useCallback((trackId: number) => {
+    // If clicking the same track that's already loaded
+    if (trackId === currentTrackId) {
+      // Toggle play/pause
+      togglePlayPause();
+    } else {
+      // Load and play new track
+      loadTrack(trackId);
+      // Auto-play after a short delay to let track load
+      setTimeout(() => {
+        if (playbackState !== 'playing') {
+          togglePlayPause();
+        }
+      }, 100);
+    }
+  }, [currentTrackId, playbackState, togglePlayPause, loadTrack]);
 
-#### Change 4: Add Mobile Tracklist Container
-
-🔍 **FIND:**
-```tsx
-  return (
-    <div className="content-sections">
-      <MediaLinksBar />
-```
-
-✏️ **REPLACE WITH:**
-```tsx
-  return (
-    <div className="content-sections">
-      {/* Mobile Tracklist - only visible on tablet/mobile */}
-      <div className="content-sections__mobile-tracklist">
-        <Tracklist
-          tracks={FOUNDATION_ALBUM.tracks}
-          currentTrackId={currentTrackId}
-          isPlaying={isPlaying}
-          isLoading={isLoading}
-          onTrackSelect={onTrackSelect}
-        />
-      </div>
-
-      <MediaLinksBar />
-```
-
----
-
-### 2. App.tsx - Pass Player State to ContentSections
-
-📁 File: `src/components/App.tsx`
-
-We need App.tsx to lift player state from PlayerSection so it can be shared with ContentSections.
-
-#### Change 1: Update App Component
-
-🔍 **FIND:**
-```tsx
-/**
- * App Component
- * 
- * Root component of the application.
- * 
- * Phase 1: ✓ Basic layout structure
- * Phase 2: ✓ Music player with playback controls
- * Phase 3: ✓ Advanced player features (waveform, equalizer, volume)
- * Phase 4: ✓ Lyrics system
- * Phase 5: ✓ Tracklist & navigation
- * Phase 6: ✓ Content sections (in progress - 6A complete)
- */
-const App: React.FC = () => {
-  return (
-    <Layout>
-      <PlayerSection />
-      <ContentSections />
-    </Layout>
+  // Expose track selection handler to parent (for mobile tracklist)
+  React.useImperativeHandle(
+    onExternalTrackSelect as any,
+    () => handleTrackSelect,
+    [handleTrackSelect]
   );
-};
 ```
 
-✏️ **REPLACE WITH:**
+**Actually, this is getting too complicated. Let's simplify:**
+
+#### Simplest Fix: Pass trackSelectRef from App
+
+The issue is that we're trying to pass callbacks through multiple layers. Let's use a cleaner pattern.
+
+---
+
+### SIMPLIFIED SOLUTION: Direct Handler Passing
+
+Instead of complex state lifting, let's just pass the track selection handler directly.
+
+#### File: `src/App.tsx`
+
+🔍 **FIND:**
 ```tsx
-/**
- * App Component
- * 
- * Root component of the application.
- * Manages shared player state for PlayerSection and ContentSections (mobile tracklist).
- * 
- * Phase 1: ✓ Basic layout structure
- * Phase 2: ✓ Music player with playback controls
- * Phase 3: ✓ Advanced player features (waveform, equalizer, volume)
- * Phase 4: ✓ Lyrics system
- * Phase 5: ✓ Tracklist & navigation
- * Phase 6: ✓ Content sections
- * Mobile Enhancement: ✓ Player state shared with mobile tracklist
- */
 const App: React.FC = () => {
   // State lifted from PlayerSection for sharing with mobile tracklist
   const [playerState, setPlayerState] = React.useState<{
@@ -236,88 +149,51 @@ const App: React.FC = () => {
 };
 ```
 
-**Note:** This introduces props to PlayerSection. PlayerSection.tsx will need updating to accept and use these props. See **Section 4** below.
+✏️ **REPLACE WITH:**
+```tsx
+const App: React.FC = () => {
+  // State lifted from PlayerSection for sharing with mobile tracklist
+  const [playerState, setPlayerState] = React.useState<{
+    currentTrackId: number | null;
+    isPlaying: boolean;
+    isLoading: boolean;
+  }>({
+    currentTrackId: null,
+    isPlaying: false,
+    isLoading: false,
+  });
 
----
+  // Ref to store the Player's track selection handler
+  const trackSelectHandlerRef = React.useRef<((trackId: number) => void) | null>(null);
 
-### 3. ContentSections.css - Style Mobile Tracklist Container
+  // Callback for track selection from mobile tracklist
+  const handleTrackSelect = React.useCallback((trackId: number) => {
+    // Call the Player's actual track selection handler
+    if (trackSelectHandlerRef.current) {
+      trackSelectHandlerRef.current(trackId);
+    }
+  }, []);
 
-📁 File: `src/components/ContentSections/ContentSections.css`
-
-#### Change 1: Add Mobile Tracklist Styles
-
-➕ **ADD AFTER:** `.content-sections { width: 100%; ... }` section
-
-```css
-
-/* ============================================================================
-   MOBILE TRACKLIST CONTAINER
-   ============================================================================ */
-
-.content-sections__mobile-tracklist {
-  width: 100%;
-  padding: var(--space-xl) var(--space-md);
-  background-color: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
-  transition: 
-    background-color var(--transition-normal),
-    border-color var(--transition-normal);
-}
-
-.content-sections__mobile-tracklist .tracklist {
-  max-width: var(--player-max-width);
-  margin: 0 auto;
-  height: 400px; /* Fixed height for mobile tracklist */
-}
-
-/* Hide mobile tracklist on desktop */
-@media (min-width: 1100px) {
-  .content-sections__mobile-tracklist {
-    display: none;
-  }
-}
-
-/* Show mobile tracklist on tablet and mobile */
-@media (max-width: 1099px) {
-  .content-sections__mobile-tracklist {
-    display: block;
-  }
-}
-
-/* Mobile adjustments */
-@media (max-width: 768px) {
-  .content-sections__mobile-tracklist {
-    padding: var(--space-lg) var(--space-sm);
-  }
-
-  .content-sections__mobile-tracklist .tracklist {
-    height: 350px; /* Slightly shorter on very small screens */
-  }
-}
+  return (
+    <Layout>
+      <PlayerSection 
+        onPlayerStateChange={setPlayerState}
+        trackSelectHandlerRef={trackSelectHandlerRef}
+      />
+      <ContentSections 
+        currentTrackId={playerState.currentTrackId}
+        isPlaying={playerState.isPlaying}
+        isLoading={playerState.isLoading}
+        onTrackSelect={handleTrackSelect}
+      />
+    </Layout>
+  );
+};
 ```
 
-**What This Does:**
-- Creates a container for the mobile tracklist with consistent section styling
-- Hides on desktop (≥1100px) where tracklist appears in player's left side
-- Shows on tablet/mobile (<1100px) with appropriate padding
-- Sets fixed height so tracklist is scrollable (similar to desktop behavior)
-- Matches styling of other content sections (background, border)
+#### File: `src/components/PlayerSection/PlayerSection.tsx`
 
----
-
-### 4. PlayerSection.tsx - Accept and Use Props for State Sharing
-
-📁 File: `src/components/PlayerSection/PlayerSection.tsx`
-
-We need to update PlayerSection to:
-1. Accept props from App for state management
-2. Notify parent (App) of player state changes
-3. Handle track selection from external sources (mobile tracklist)
-
-#### Change 1: Add Props Interface
-
-➕ **ADD AFTER:** imports, **BEFORE** component definition
-
+🔍 **FIND:**
 ```tsx
 interface PlayerSectionProps {
   onPlayerStateChange: (state: {
@@ -329,14 +205,19 @@ interface PlayerSectionProps {
 }
 ```
 
-#### Change 2: Update Component Signature
-
-🔍 **FIND:**
+✏️ **REPLACE WITH:**
 ```tsx
-const PlayerSection: React.FC = () => {
+interface PlayerSectionProps {
+  onPlayerStateChange: (state: {
+    currentTrackId: number | null;
+    isPlaying: boolean;
+    isLoading: boolean;
+  }) => void;
+  trackSelectHandlerRef: React.MutableRefObject<((trackId: number) => void) | null>;
+}
 ```
 
-✏️ **REPLACE WITH:**
+🔍 **FIND:**
 ```tsx
 const PlayerSection: React.FC<PlayerSectionProps> = ({
   onPlayerStateChange,
@@ -344,22 +225,15 @@ const PlayerSection: React.FC<PlayerSectionProps> = ({
 }) => {
 ```
 
-#### Change 3: Add Effect to Notify Parent of State Changes
-
-This needs to be added inside the PlayerSection component, after the Player component is rendered. We need to find where Player is instantiated and wrap it to capture state changes.
-
-🔍 **FIND:**
+✏️ **REPLACE WITH:**
 ```tsx
-  return (
-    <section className="player-section">
-      <div className="player-section__container">
-        <Player />
-      </div>
-    </section>
-  );
+const PlayerSection: React.FC<PlayerSectionProps> = ({
+  onPlayerStateChange,
+  trackSelectHandlerRef,
+}) => {
 ```
 
-✏️ **REPLACE WITH:**
+🔍 **FIND:**
 ```tsx
   return (
     <section className="player-section">
@@ -373,29 +247,32 @@ This needs to be added inside the PlayerSection component, after the Player comp
   );
 ```
 
-**Note:** This assumes Player component will be updated to accept and use these props. See **Section 5** below.
+✏️ **REPLACE WITH:**
+```tsx
+  return (
+    <section className="player-section">
+      <div className="player-section__container">
+        <Player 
+          onStateChange={onPlayerStateChange}
+          trackSelectHandlerRef={trackSelectHandlerRef}
+        />
+      </div>
+    </section>
+  );
+```
 
----
-
-### 5. Player.tsx - Expose State and Handle External Track Selection
-
-📁 File: `src/components/Player/Player.tsx`
-
-#### Change 1: Add Props Interface
+#### File: `src/components/Player/Player.tsx`
 
 🔍 **FIND:**
 ```tsx
-/**
- * Player Component
- * 
- * Main music player component that orchestrates all player sub-components.
- * Manages audio playback state via useAudioPlayer hook.
- * 
- * Phase 2: Basic playback with simple progress bar
- * Phase 3: Will add waveform, equalizer, volume, shuffle, repeat
- * Phase 4: Will add lyrics integration
- */
-const Player: React.FC = () => {
+interface PlayerProps {
+  onStateChange?: (state: {
+    currentTrackId: number | null;
+    isPlaying: boolean;
+    isLoading: boolean;
+  }) => void;
+  onExternalTrackSelect?: (trackId: number) => void;
+}
 ```
 
 ✏️ **REPLACE WITH:**
@@ -406,50 +283,76 @@ interface PlayerProps {
     isPlaying: boolean;
     isLoading: boolean;
   }) => void;
-  onExternalTrackSelect?: (trackId: number) => void;
+  trackSelectHandlerRef?: React.MutableRefObject<((trackId: number) => void) | null>;
 }
+```
 
-/**
- * Player Component
- * 
- * Main music player component that orchestrates all player sub-components.
- * Manages audio playback state via useAudioPlayer hook.
- * Exposes player state to parent for mobile tracklist integration.
- * 
- * Phase 2: Basic playback with simple progress bar
- * Phase 3: Will add waveform, equalizer, volume, shuffle, repeat
- * Phase 4: Will add lyrics integration
- * Mobile Enhancement: Shares state with external components
- */
+🔍 **FIND:**
+```tsx
 const Player: React.FC<PlayerProps> = ({
   onStateChange,
   onExternalTrackSelect,
 }) => {
 ```
 
-#### Change 2: Add Effect to Notify Parent of State Changes
-
-➕ **ADD AFTER:** the `useEffect` for equalizer persistence, **BEFORE** the `useAudioPlayer` hook
-
+✏️ **REPLACE WITH:**
 ```tsx
-  // Notify parent of player state changes (for mobile tracklist)
-  React.useEffect(() => {
-    if (onStateChange) {
-      onStateChange({
-        currentTrackId,
-        isPlaying: playbackState === 'playing',
-        isLoading: playbackState === 'loading',
-      });
-    }
-  }, [currentTrackId, playbackState, onStateChange]);
+const Player: React.FC<PlayerProps> = ({
+  onStateChange,
+  trackSelectHandlerRef,
+}) => {
 ```
 
-#### Change 3: Handle External Track Selection
+🔍 **FIND:**
+```tsx
+  // Handle track selection from tracklist
+  const handleTrackSelect = (trackId: number) => {
+    // If clicking the same track that's already loaded
+    if (trackId === currentTrackId) {
+      // Toggle play/pause
+      togglePlayPause();
+    } else {
+      // Load and play new track
+      loadTrack(trackId);
+      // Auto-play after a short delay to let track load
+      setTimeout(() => {
+        if (playbackState !== 'playing') {
+          togglePlayPause();
+        }
+      }, 100);
+    }
+  };
+```
 
-The `handleTrackSelect` function already exists in Player.tsx. We need to expose it for external use.
+✏️ **REPLACE WITH:**
+```tsx
+  // Handle track selection from tracklist
+  const handleTrackSelect = React.useCallback((trackId: number) => {
+    // If clicking the same track that's already loaded
+    if (trackId === currentTrackId) {
+      // Toggle play/pause
+      togglePlayPause();
+    } else {
+      // Load and play new track
+      loadTrack(trackId);
+      // Auto-play after a short delay to let track load
+      setTimeout(() => {
+        if (playbackState !== 'playing') {
+          togglePlayPause();
+        }
+      }, 100);
+    }
+  }, [currentTrackId, playbackState, togglePlayPause, loadTrack]);
 
-➕ **ADD AFTER:** the state notification effect added above
+  // Expose track selection handler to parent via ref
+  React.useEffect(() => {
+    if (trackSelectHandlerRef) {
+      trackSelectHandlerRef.current = handleTrackSelect;
+    }
+  }, [handleTrackSelect, trackSelectHandlerRef]);
+```
 
+🔍 **FIND:**
 ```tsx
   // Handle external track selection (from mobile tracklist)
   React.useEffect(() => {
@@ -461,230 +364,166 @@ The `handleTrackSelect` function already exists in Player.tsx. We need to expose
   }, [onExternalTrackSelect]);
 ```
 
-**Note:** The mobile tracklist will call `onTrackSelect` from ContentSections, which flows through App → PlayerSection → Player. The existing `handleTrackSelect` function in Player will handle the actual track loading logic.
+✏️ **REPLACE WITH:**
+```tsx
+  // Note: External track selection now handled via trackSelectHandlerRef
+  // No additional effect needed - the ref is set in the effect above
+```
 
 ---
 
-### 6. Tracklist.css - Ensure Mobile Compatibility
+### Fix 2: Reduce Gap Between Tracklist and Controls
 
-📁 File: `src/components/Tracklist/Tracklist.css`
+#### File: `src/components/ContentSections/ContentSections.css`
 
-The tracklist styles should already work fine in the ContentSections context, but we'll add a specific note for clarity.
-
-➕ **ADD AT END OF FILE:**
-
+🔍 **FIND:**
 ```css
+/* Ensure proper spacing between player and content sections */
+.content-sections {
+  margin-top: var(--space-2xl);
+}
+```
 
-/* ============================================================================
-   MOBILE CONTENT SECTIONS INTEGRATION
-   ============================================================================ */
+✏️ **REPLACE WITH:**
+```css
+/* Ensure proper spacing between player and content sections */
+.content-sections {
+  margin-top: var(--space-2xl);
+}
 
-/* When tracklist appears in ContentSections on mobile, ensure proper behavior */
+/* On mobile/tablet when tracklist is visible, reduce top margin to prevent double spacing */
 @media (max-width: 1099px) {
-  .content-sections__mobile-tracklist .tracklist {
-    /* Inherit height from parent container */
-    height: 100%;
+  .content-sections {
+    margin-top: var(--space-lg); /* Reduced from 2xl to lg */
+  }
+}
+```
+
+#### File: `src/components/ContentSections/ContentSections.css`
+
+Also reduce the padding within the mobile tracklist container:
+
+🔍 **FIND:**
+```css
+.content-sections__mobile-tracklist {
+  width: 100%;
+  padding: var(--space-xl) var(--space-md);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+```
+
+✏️ **REPLACE WITH:**
+```css
+.content-sections__mobile-tracklist {
+  width: 100%;
+  padding: var(--space-md) var(--space-md); /* Reduced from xl to md */
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+```
+
+🔍 **FIND:**
+```css
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .content-sections__mobile-tracklist {
+    padding: var(--space-lg) var(--space-sm);
   }
 
-  .content-sections__mobile-tracklist .tracklist__content {
-    /* Ensure scroll behavior works in mobile context */
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  .content-sections__mobile-tracklist .tracklist {
+    height: 350px; /* Slightly shorter on very small screens */
+  }
+}
+```
+
+✏️ **REPLACE WITH:**
+```css
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .content-sections__mobile-tracklist {
+    padding: var(--space-sm) var(--space-sm); /* Further reduced for mobile */
+  }
+
+  .content-sections__mobile-tracklist .tracklist {
+    height: 350px; /* Slightly shorter on very small screens */
   }
 }
 ```
 
 ---
 
-## Architecture Summary
+## Summary of Changes
 
-### Data Flow for Mobile Tracklist:
+### Track Selection Fix:
+- Changed from callback passing to ref-based handler sharing
+- Player exposes its `handleTrackSelect` function via `trackSelectHandlerRef`
+- App stores the ref and passes it to PlayerSection → Player
+- ContentSections calls the ref when mobile tracklist items are clicked
+- This creates a direct connection to the Player's track loading logic
 
-```
-User taps track in mobile tracklist
-         ↓
-ContentSections.onTrackSelect(trackId)
-         ↓
-App.handleTrackSelect(trackId)
-         ↓
-App.setPlayerState (updates trackId)
-         ↓
-PlayerSection receives new props
-         ↓
-Player receives notification via onExternalTrackSelect
-         ↓
-Player.handleTrackSelect loads and plays the track
-         ↓
-Player state updates (playing, currentTrackId, etc.)
-         ↓
-Player.onStateChange notifies App
-         ↓
-App updates playerState
-         ↓
-ContentSections receives updated props
-         ↓
-Mobile tracklist shows correct current track
-```
-
-### Component Hierarchy:
-```
-App
-├── PlayerSection
-│   └── Player
-│       ├── Tracklist (desktop only - left floating box)
-│       └── [other player components]
-└── ContentSections
-    ├── Tracklist (mobile only - via content-sections__mobile-tracklist)
-    ├── MediaLinksBar
-    ├── AboutSection
-    ├── ShowsSection
-    └── ContactSection
-```
+### Spacing Fix:
+- Reduced `margin-top` on ContentSections for mobile from `2xl` to `lg`
+- Reduced padding in `.content-sections__mobile-tracklist` from `xl` to `md`
+- Further reduced mobile padding from `lg` to `sm`
+- This removes ~32-48px of unnecessary spacing
 
 ---
 
-## Expected Visual Result
+## Testing After Fixes
 
-### Desktop (≥1100px) - NO CHANGES:
-```
-┌────────────────────────────────────────────────┐
-│                PLAYER SECTION                   │
-├──────────┬───────────────────┬─────────────────┤
-│          │                   │                 │
-│ TRACKLIST│     ARTWORK       │  LYRICS (opt)   │
-│  (LEFT)  │     CONTROLS      │     (RIGHT)     │
-│          │                   │                 │
-└──────────┴───────────────────┴─────────────────┘
-┌────────────────────────────────────────────────┐
-│               CONTENT SECTIONS                  │
-├────────────────────────────────────────────────┤
-│            Social Media Links                   │
-│               About Section                     │
-│               Shows Section                     │
-│              Contact Section                    │
-└────────────────────────────────────────────────┘
-```
+### Track Selection:
+- [ ] Clicking track in mobile tracklist loads and plays that track
+- [ ] Current track indicator updates in mobile tracklist
+- [ ] Play/pause button in mobile tracklist reflects correct state
+- [ ] Desktop tracklist still works (shouldn't be affected)
+- [ ] Track auto-plays after selection
 
-### Mobile (<1100px) - NEW BEHAVIOR:
-```
-┌────────────────────────────────────────────────┐
-│                PLAYER SECTION                   │
-├────────────────────────────────────────────────┤
-│                                                │
-│              ARTWORK                            │
-│              CONTROLS                           │
-│              WAVEFORM                           │
-│                                                │
-└────────────────────────────────────────────────┘
-┌────────────────────────────────────────────────┐
-│               CONTENT SECTIONS                  │
-├────────────────────────────────────────────────┤
-│ ┌────────────────────────────────────────────┐ │
-│ │            TRACKLIST (NEW!)                │ │
-│ │  1. Track One                              │ │
-│ │  2. Track Two                              │ │
-│ │  [scrollable - 350-400px height]           │ │
-│ └────────────────────────────────────────────┘ │
-├────────────────────────────────────────────────┤
-│        Social Media Icons (2x3 grid)            │
-│               About Section                     │
-│               Shows Section                     │
-│              Contact Section                    │
-└────────────────────────────────────────────────┘
-```
+### Spacing:
+- [ ] Gap between tracklist and social icons is reasonable (~16-24px)
+- [ ] No excessive white space below tracklist
+- [ ] Tracklist doesn't feel cramped (still has breathing room)
+- [ ] Consistent spacing with other sections
 
----
-
-## Testing Checklist
-
-### Desktop Testing (≥1100px):
-- [ ] Tracklist still appears on LEFT side of player
-- [ ] Tracklist click-to-play works
-- [ ] Current track highlights correctly
-- [ ] Auto-scroll to current track works
-- [ ] No duplicate tracklist visible
-- [ ] ContentSections does NOT show tracklist
-- [ ] Player layout unchanged
-
-### Tablet Testing (768px - 1099px):
-- [ ] Tracklist appears in ContentSections (not in player area)
-- [ ] Tracklist is first item in ContentSections
-- [ ] Tracklist is positioned above MediaLinksBar
-- [ ] Tracklist height is appropriate (~400px)
-- [ ] Tracklist is scrollable
-- [ ] Click on track loads and plays it
-- [ ] Current track highlights correctly
-- [ ] Player section shows artwork/controls only
-
-### Mobile Testing (<768px):
-- [ ] Tracklist visible in ContentSections
-- [ ] Tracklist height adjusted (~350px)
-- [ ] Tracklist positioned below player, above social icons
-- [ ] Touch scrolling works smoothly
-- [ ] Track selection works with touch
-- [ ] Current track indicator visible
-- [ ] No horizontal scroll issues
-- [ ] Appropriate padding on small screens
-
-### Functional Testing (All Breakpoints):
-- [ ] Clicking track in mobile tracklist plays that track
-- [ ] Current track indicator updates in both desktop and mobile tracklists
-- [ ] Player controls (play/pause/next/prev) sync with tracklist state
-- [ ] Auto-scroll works when track changes
-- [ ] No console errors when switching tracks
+### No Regressions:
+- [ ] Desktop layout unchanged
+- [ ] Desktop tracklist (left side) still works
+- [ ] Player controls work normally
+- [ ] State synchronization between player and tracklist
 - [ ] TypeScript compiles without errors
-- [ ] Player state properly shared between components
-
-### State Synchronization:
-- [ ] Playing track from mobile tracklist updates player
-- [ ] Playing track from player controls updates mobile tracklist
-- [ ] Current track stays highlighted across both tracklists
-- [ ] Play/pause state reflects correctly in tracklist icons
-- [ ] Loading state shows correctly when switching tracks
 
 ---
 
-## Notes
+## Explanation of the Ref Pattern
 
-### Why This Approach:
-- **Minimal desktop changes:** Desktop behavior completely untouched
-- **Component reuse:** Same Tracklist component works in both contexts
-- **Clean separation:** CSS handles show/hide logic at breakpoints
-- **Proper state management:** State lifted to App for sharing
-- **Mobile-first enhancement:** Makes previously hidden feature accessible
+The previous approach tried to pass callbacks through multiple layers, which got messy. The ref pattern is cleaner:
 
-### Complexity Considerations:
-- **State lifting:** Required to share player state between PlayerSection and ContentSections
-- **Props drilling:** Necessary but keeps data flow explicit
-- **Dual rendering:** Tracklist rendered twice (desktop + mobile) but only one shown at a time
-- **Breakpoint coordination:** Must match existing breakpoints for consistency
+```
+Player creates handleTrackSelect function
+         ↓
+Player stores it in trackSelectHandlerRef.current
+         ↓
+App has access to trackSelectHandlerRef
+         ↓
+App passes onTrackSelect callback to ContentSections
+         ↓
+ContentSections passes it to mobile Tracklist
+         ↓
+User clicks track in mobile Tracklist
+         ↓
+onTrackSelect(trackId) is called
+         ↓
+App's handleTrackSelect calls trackSelectHandlerRef.current(trackId)
+         ↓
+Player's handleTrackSelect executes with trackId
+         ↓
+Track loads and plays!
+```
 
-### Alternative Approaches Considered:
-1. **Single tracklist instance that repositions:** More complex, potential for layout thrashing
-2. **Modal/overlay tracklist on mobile:** Less discoverable, requires extra tap
-3. **Collapsible tracklist above player:** Takes space from player, less intuitive
-4. **Current approach (dual render with CSS):** Best balance of simplicity and UX
-
-### Performance Notes:
-- **Dual rendering:** Minor impact - tracklist is small and lightweight
-- **React reconciliation:** Minimal - only one instance active at a time
-- **Scroll performance:** Maintained via virtual scrolling (if list becomes large)
-
----
-
-## Troubleshooting
-
-**Problem:** Tracklist shows on both desktop and mobile
-- **Solution:** Check CSS media queries - ensure `display: none` at ≥1100px for `.content-sections__mobile-tracklist`
-
-**Problem:** Click on mobile tracklist doesn't play track
-- **Solution:** Verify props flow from ContentSections → App → PlayerSection → Player
-
-**Problem:** Current track not highlighting in mobile tracklist
-- **Solution:** Check that `playerState.currentTrackId` is being passed correctly to ContentSections
-
-**Problem:** TypeScript errors about missing props
-- **Solution:** Ensure all interfaces are defined and props are passed at each level
-
-**Problem:** Mobile tracklist too tall/short
-- **Solution:** Adjust height in `.content-sections__mobile-tracklist .tracklist` CSS
+This avoids circular dependencies and keeps the data flow clean.

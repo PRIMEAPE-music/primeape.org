@@ -8,7 +8,7 @@ interface PlayerSectionProps {
     isPlaying: boolean;
     isLoading: boolean;
   }) => void;
-  onTrackSelectFromExternal: (trackId: number) => void;
+  trackSelectHandlerRef: React.MutableRefObject<((trackId: number) => void) | null>;
 }
 
 /**
@@ -19,14 +19,14 @@ interface PlayerSectionProps {
  */
 const PlayerSection: React.FC<PlayerSectionProps> = ({
   onPlayerStateChange,
-  onTrackSelectFromExternal,
+  trackSelectHandlerRef,
 }) => {
   return (
     <section className="player-section">
       <div className="player-section__container">
         <Player 
           onStateChange={onPlayerStateChange}
-          onExternalTrackSelect={onTrackSelectFromExternal}
+          trackSelectHandlerRef={trackSelectHandlerRef}
         />
       </div>
     </section>

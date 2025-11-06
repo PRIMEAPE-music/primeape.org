@@ -26,7 +26,7 @@ interface PlayerProps {
     isPlaying: boolean;
     isLoading: boolean;
   }) => void;
-  onExternalTrackSelect?: (trackId: number) => void;
+  trackSelectHandlerRef?: React.MutableRefObject<((trackId: number) => void) | null>;
 }
 
 /**
@@ -43,7 +43,7 @@ interface PlayerProps {
  */
 const Player: React.FC<PlayerProps> = ({
   onStateChange,
-  onExternalTrackSelect,
+  trackSelectHandlerRef,
 }) => {
   // Equalizer state
   const [showEqualizer, setShowEqualizer] = useState(() => {
@@ -99,14 +99,8 @@ const Player: React.FC<PlayerProps> = ({
     }
   }, [currentTrackId, playbackState, onStateChange]);
 
-  // Handle external track selection (from mobile tracklist)
-  useEffect(() => {
-    if (onExternalTrackSelect) {
-      // Register the handler - this allows parent to trigger track selection
-      // Parent will call onExternalTrackSelect(trackId) which needs to trigger handleTrackSelect
-      // For this to work, we need to make handleTrackSelect available
-    }
-  }, [onExternalTrackSelect]);
+  // Note: External track selection now handled via trackSelectHandlerRef
+  // No additional effect needed - the ref is set in the effect above
 
   // Lyrics
   const {
@@ -161,7 +155,7 @@ const Player: React.FC<PlayerProps> = ({
   });
 
   // Handle track selection from tracklist
-  const handleTrackSelect = (trackId: number) => {
+  const handleTrackSelect = React.useCallback((trackId: number) => {
     // If clicking the same track that's already loaded
     if (trackId === currentTrackId) {
       // Toggle play/pause
@@ -176,7 +170,14 @@ const Player: React.FC<PlayerProps> = ({
         }
       }, 100);
     }
-  };
+  }, [currentTrackId, playbackState, togglePlayPause, loadTrack]);
+
+  // Expose track selection handler to parent via ref
+  React.useEffect(() => {
+    if (trackSelectHandlerRef) {
+      trackSelectHandlerRef.current = handleTrackSelect;
+    }
+  }, [handleTrackSelect, trackSelectHandlerRef]);
 
   return (
     <div className="player">

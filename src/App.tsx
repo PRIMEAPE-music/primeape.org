@@ -30,19 +30,22 @@ const App: React.FC = () => {
     isLoading: false,
   });
 
+  // Ref to store the Player's track selection handler
+  const trackSelectHandlerRef = React.useRef<((trackId: number) => void) | null>(null);
+
   // Callback for track selection from mobile tracklist
   const handleTrackSelect = React.useCallback((trackId: number) => {
-    // This will be called from mobile tracklist
-    // PlayerSection needs to expose a way to handle this
-    // For now, we'll pass this down and PlayerSection will handle the actual logic
-    setPlayerState(prev => ({ ...prev, currentTrackId: trackId }));
+    // Call the Player's actual track selection handler
+    if (trackSelectHandlerRef.current) {
+      trackSelectHandlerRef.current(trackId);
+    }
   }, []);
 
   return (
     <Layout>
       <PlayerSection 
         onPlayerStateChange={setPlayerState}
-        onTrackSelectFromExternal={handleTrackSelect}
+        trackSelectHandlerRef={trackSelectHandlerRef}
       />
       <ContentSections 
         currentTrackId={playerState.currentTrackId}
