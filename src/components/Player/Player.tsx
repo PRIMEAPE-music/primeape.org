@@ -187,7 +187,6 @@ const Player: React.FC<PlayerProps> = ({
       }
     }
   }, [currentTrackId, togglePlayPause, loadTrack, audioRef]);
-  
   // Expose track selection handler to parent via ref
   React.useEffect(() => {
     if (trackSelectHandlerRef) {

@@ -28,33 +28,41 @@ const Tracklist: React.FC<TracklistProps> = ({
 }) => {
   const tracklistRef = useRef<HTMLDivElement>(null);
 
-  // Track if this is the initial mount
-  const hasScrolledRef = React.useRef(false);
+  // Track if user has clicked a track (to enable auto-scroll)
+  const userHasClickedRef = React.useRef(false);
+  const previousTrackIdRef = React.useRef<number | null>(null);
 
-  // Auto-scroll to current track when it changes
+  // Mark that user clicked when onTrackSelect is called
+  const handleTrackClick = (trackId: number) => {
+    userHasClickedRef.current = true;
+    onTrackSelect(trackId);
+  };
+
+  // Auto-scroll to current track when it changes (only after user interaction)
   useEffect(() => {
     if (!currentTrackId) return;
+
+    // Detect if this is a user-initiated track change (not initial load)
+    const isUserChange = previousTrackIdRef.current !== null && 
+                         currentTrackId !== previousTrackIdRef.current;
+    
+    // Update ref for next comparison
+    previousTrackIdRef.current = currentTrackId;
+
+    // Only scroll if user has clicked a track OR if this is a subsequent track change
+    if (!userHasClickedRef.current && !isUserChange) {
+      return; // Skip scroll on initial page load
+    }
 
     const tracklist = tracklistRef.current;
     const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
 
     if (tracklist && currentTrackElement) {
-      // On first scroll (when track is first selected), don't animate and don't scroll page
-      if (!hasScrolledRef.current) {
-        hasScrolledRef.current = true;
-        // Scroll without animation and only within container (don't affect page scroll)
-        currentTrackElement.scrollIntoView({
-          behavior: 'auto', // Instant, no animation on first load
-          block: 'center',
-          inline: 'nearest',
-        });
-      } else {
-        // Subsequent scrolls can be smooth
-        currentTrackElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      }
+      // Scroll current track into view
+      currentTrackElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
     }
   }, [currentTrackId]);
 
@@ -80,7 +88,7 @@ const Tracklist: React.FC<TracklistProps> = ({
               isCurrentTrack={track.id === currentTrackId}
               isPlaying={isPlaying}
               isLoading={isLoading && track.id === currentTrackId}
-              onClick={() => onTrackSelect(track.id)}
+              onClick={() => handleTrackClick(track.id)}
             />
           ))
         )}
