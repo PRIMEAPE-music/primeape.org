@@ -17,7 +17,7 @@
 /* On mobile/tablet when tracklist is visible, reduce top margin to prevent double spacing */
 @media (max-width: 1099px) {
   .content-sections {
-    margin-top: var(--space-lg); /* Reduced from 2xl to lg */
+    margin-top: var(--space-md); /* Further reduced from lg to md for tighter spacing */
   }
 }
 
@@ -58,7 +58,7 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .content-sections {
-    margin-top: var(--space-xl);
+    margin-top: var(--space-sm); /* Even tighter on mobile */
   }
 
   .content-sections__mobile-tracklist {
