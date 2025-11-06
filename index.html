@@ -6,9 +6,12 @@
     
     <!-- SEO Meta Tags -->
     <title>PRIMEAPE - FOUNDATION | Official Album Website</title>
-    <meta name="description" content="Stream and download FOUNDATION by PRIMEAPE. Philosophical hip-hop featuring 16 tracks. Listen to instrumentals and full versions with lyrics." />
-    <meta name="keywords" content="PRIMEAPE, FOUNDATION, hip-hop, album, music, streaming" />
+    <meta name="description" content="Stream and download FOUNDATION by PRIMEAPE. 16-track philosophical hip-hop album exploring existence, purpose, and human nature. Free download with lyrics, instrumentals, and vocal versions." />
+    <meta name="keywords" content="PRIMEAPE, FOUNDATION, hip-hop, album, music, streaming, philosophy, free download" />
     <meta name="author" content="PRIMEAPE" />
+
+    <!-- Canonical URL (prevents duplicate content issues) -->
+    <link rel="canonical" href="https://primeape.org/" />
     
     <!-- Open Graph / Social Media -->
     <meta property="og:type" content="music.album" />
@@ -36,6 +39,28 @@
         
     <!-- Preconnect for performance (if using external fonts later) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+    <!-- Structured Data for Rich Search Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MusicAlbum",
+      "name": "FOUNDATION",
+      "byArtist": {
+        "@type": "MusicGroup",
+        "name": "PRIMEAPE",
+        "genre": "Hip-Hop"
+      },
+      "datePublished": "2024-01-15",
+      "genre": "Hip-Hop",
+      "description": "Philosophical hip-hop album featuring 16 tracks exploring themes of existence, purpose, and human nature.",
+      "image": "https://primeape.org/artwork/foundation-cover.jpg",
+      "url": "https://primeape.org",
+      "numTracks": 16,
+      "albumProductionType": "http://schema.org/StudioAlbum",
+      "inLanguage": "en-US"
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>

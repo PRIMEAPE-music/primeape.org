@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- Homepage / Main Player -->
+  <url>
+    <loc>https://primeape.org/</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://primeape.org/artwork/foundation-cover.jpg</image:loc>
+      <image:title>FOUNDATION Album Cover</image:title>
+      <image:caption>FOUNDATION by PRIMEAPE - Album Artwork</image:caption>
+    </image:image>
+  </url>
+
+  <!-- About Section (anchor link, but valuable for context) -->
+  <url>
+    <loc>https://primeape.org/#about</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Merch Section (anchor link) -->
+  <url>
+    <loc>https://primeape.org/#merch</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Contact Section (anchor link) -->
+  <url>
+    <loc>https://primeape.org/#contact</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
