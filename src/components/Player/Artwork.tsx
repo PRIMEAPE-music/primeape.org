@@ -28,26 +28,28 @@ const Artwork: React.FC<ArtworkProps> = ({
 }) => {
   return (
     <div className={`artwork ${isPlaying ? 'artwork--playing' : ''}`}>
-      <div className="artwork__container">
-        <img
-          src={FOUNDATION_ALBUM.artworkUrl}
-          alt={`${FOUNDATION_ALBUM.title} album cover`}
-          className="artwork__image"
-          onError={(e) => {
-            // Fallback if image fails to load
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-            target.parentElement!.classList.add('artwork__container--no-image');
-          }}
-        />
-        
-        {/* Equalizer Overlay */}
-        <Equalizer
-          audioContext={audioContext}
-          sourceNode={sourceNode}
-          isPlaying={isPlaying}
-          isVisible={showEqualizer}
-        />
+      <div className="artwork__animation-wrapper">
+        <div className="artwork__container">
+          <img
+            src={FOUNDATION_ALBUM.artworkUrl}
+            alt={`${FOUNDATION_ALBUM.title} album cover`}
+            className="artwork__image"
+            onError={(e) => {
+              // Fallback if image fails to load
+              const target = e.target as HTMLImageElement;
+              target.style.display = 'none';
+              target.parentElement!.classList.add('artwork__container--no-image');
+            }}
+          />
+          
+          {/* Equalizer Overlay */}
+          <Equalizer
+            audioContext={audioContext}
+            sourceNode={sourceNode}
+            isPlaying={isPlaying}
+            isVisible={showEqualizer}
+          />
+        </div>
       </div>
     </div>
   );

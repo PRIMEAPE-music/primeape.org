@@ -113,7 +113,7 @@ const tracks: Track[] = [
   {
     id: 12,
     title: 'TECHNOLOGY',
-    duration: 224,
+    duration: 223,
     vocalFile: '/music/vocal/12-TECHNOLOGY.mp3',
     instrumentalFile: '/music/instrumental/12-TECHNOLOGY-instrumental.mp3',
     lyricsFile: '/lyrics/12-TECHNOLOGY.lrc',
@@ -131,7 +131,7 @@ const tracks: Track[] = [
   {
     id: 14,
     title: 'GRANDEUR',
-    duration: 150,
+    duration: 149,
     vocalFile: '/music/vocal/14-GRANDEUR.mp3',
     instrumentalFile: '/music/instrumental/14-GRANDEUR-instrumental.mp3',
     lyricsFile: '/lyrics/14-GRANDEUR.lrc',

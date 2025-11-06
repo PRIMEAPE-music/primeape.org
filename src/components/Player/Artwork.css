@@ -9,16 +9,12 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1;
-  border-radius: var(--radius-lg); /* Match image rounding */
-  overflow: visible; /* Allow equalizer bars to extend beyond */
-  background-color: transparent; /* Remove gray background */
+  border-radius: var(--radius-lg);
+  overflow: hidden; /* Changed from visible */
+  background-color: transparent;
   box-shadow: var(--shadow-lg);
   transition: transform var(--transition-normal),
               box-shadow var(--transition-normal);
-}
-
-.artwork--playing .artwork__container {
-  animation: subtle-pulse 4s ease-in-out infinite;
 }
 
 @keyframes subtle-pulse {
@@ -60,6 +56,30 @@
   color: var(--color-text-primary);
   opacity: 0.5;
   letter-spacing: 0.1em;
+}
+
+.artwork__animation-wrapper {
+  position: relative;
+  width: 100%;
+  /* This wrapper handles the animation */
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.artwork--playing .artwork__animation-wrapper {
+  animation: subtle-pulse 4s ease-in-out infinite;
+}
+
+.artwork__container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  overflow: visible; /* No conflict now! */
+  background-color: transparent;
+  box-shadow: var(--shadow-lg);
+  /* No animation on this element */
 }
 
 /* Mobile adjustments */

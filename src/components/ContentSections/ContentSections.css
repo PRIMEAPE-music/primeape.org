@@ -14,9 +14,51 @@
   margin-top: var(--space-2xl);
 }
 
+/* ============================================================================
+   MOBILE TRACKLIST CONTAINER
+   ============================================================================ */
+
+.content-sections__mobile-tracklist {
+  width: 100%;
+  padding: var(--space-xl) var(--space-md);
+  background-color: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  transition: 
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.content-sections__mobile-tracklist .tracklist {
+  max-width: var(--player-max-width);
+  margin: 0 auto;
+  height: 400px; /* Fixed height for mobile tracklist */
+}
+
+/* Hide mobile tracklist on desktop */
+@media (min-width: 1100px) {
+  .content-sections__mobile-tracklist {
+    display: none;
+  }
+}
+
+/* Show mobile tracklist on tablet and mobile */
+@media (max-width: 1099px) {
+  .content-sections__mobile-tracklist {
+    display: block;
+  }
+}
+
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .content-sections {
     margin-top: var(--space-xl);
+  }
+
+  .content-sections__mobile-tracklist {
+    padding: var(--space-lg) var(--space-sm);
+  }
+
+  .content-sections__mobile-tracklist .tracklist {
+    height: 350px; /* Slightly shorter on very small screens */
   }
 }

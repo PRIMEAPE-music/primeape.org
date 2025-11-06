@@ -100,3 +100,21 @@
   color: var(--color-text-secondary);
   text-align: center;
 }
+
+/* ============================================================================
+   MOBILE CONTENT SECTIONS INTEGRATION
+   ============================================================================ */
+
+/* When tracklist appears in ContentSections on mobile, ensure proper behavior */
+@media (max-width: 1099px) {
+  .content-sections__mobile-tracklist .tracklist {
+    /* Inherit height from parent container */
+    height: 100%;
+  }
+
+  .content-sections__mobile-tracklist .tracklist__content {
+    /* Ensure scroll behavior works in mobile context */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  }
+}

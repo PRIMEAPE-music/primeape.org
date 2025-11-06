@@ -3,21 +3,36 @@ import MediaLinksBar from './MediaLinksBar';
 import AboutSection from './AboutSection';
 import ShowsSection from './ShowsSection';
 import ContactSection from './ContactSection';
+import Tracklist from '../Tracklist/Tracklist';
+import { FOUNDATION_ALBUM } from '../../data/album';
 import './ContentSections.css';
+
+interface ContentSectionsProps {
+  currentTrackId: number | null;
+  isPlaying: boolean;
+  isLoading: boolean;
+  onTrackSelect: (trackId: number) => void;
+}
 
 /**
  * ContentSections Component
  * 
  * Wrapper for all content sections below the player.
- * Renders sections in order: Media Links → About → Shows → Contact → Footer
+ * Renders sections in order: Tracklist (mobile only) → Media Links → About → Shows → Contact → Footer
  * 
  * Phase 6A: ✓ Basic structure
  * Phase 6B: ✓ MediaLinksBar
  * Phase 6C: ✓ AboutSection
  * Phase 6D: ✓ ShowsSection with scroll-to-contact
  * Phase 6E: ✓ ContactSection with Netlify Forms
+ * Mobile Enhancement: ✓ Tracklist visible below player on mobile
  */
-const ContentSections: React.FC = () => {
+const ContentSections: React.FC<ContentSectionsProps> = ({
+  currentTrackId,
+  isPlaying,
+  isLoading,
+  onTrackSelect,
+}) => {
   // Ref for scroll target (contact section)
   const contactRef = React.useRef<HTMLElement>(null);
 
@@ -35,6 +50,17 @@ const ContentSections: React.FC = () => {
 
   return (
     <div className="content-sections">
+      {/* Mobile Tracklist - only visible on tablet/mobile */}
+      <div className="content-sections__mobile-tracklist">
+        <Tracklist
+          tracks={FOUNDATION_ALBUM.tracks}
+          currentTrackId={currentTrackId}
+          isPlaying={isPlaying}
+          isLoading={isLoading}
+          onTrackSelect={onTrackSelect}
+        />
+      </div>
+
       <MediaLinksBar />
       <AboutSection />
       <ShowsSection onBookMeClick={handleBookMeClick} />

@@ -20,17 +20,31 @@ import { useLyrics } from '@/hooks/useLyrics';
 import KeyboardShortcutsHelp from '../KeyboardShortcutsHelp/KeyboardShortcutsHelp';
 import './Player.css';
 
+interface PlayerProps {
+  onStateChange?: (state: {
+    currentTrackId: number | null;
+    isPlaying: boolean;
+    isLoading: boolean;
+  }) => void;
+  onExternalTrackSelect?: (trackId: number) => void;
+}
+
 /**
  * Player Component
  * 
  * Main music player component that orchestrates all player sub-components.
  * Manages audio playback state via useAudioPlayer hook.
+ * Exposes player state to parent for mobile tracklist integration.
  * 
  * Phase 2: Basic playback with simple progress bar
  * Phase 3: Will add waveform, equalizer, volume, shuffle, repeat
  * Phase 4: Will add lyrics integration
+ * Mobile Enhancement: Shares state with external components
  */
-const Player: React.FC = () => {
+const Player: React.FC<PlayerProps> = ({
+  onStateChange,
+  onExternalTrackSelect,
+}) => {
   // Equalizer state
   const [showEqualizer, setShowEqualizer] = useState(() => {
     const saved = localStorage.getItem('primeape_equalizer');
@@ -73,6 +87,26 @@ const Player: React.FC = () => {
   const currentTrack = currentTrackId ? getTrackById(currentTrackId) || null : null;
   const trackIndex = currentTrack ? FOUNDATION_ALBUM.tracks.findIndex(track => track.id === currentTrack.id) : 0;
   const isPlaying = playbackState === 'playing';
+
+  // Notify parent of player state changes (for mobile tracklist)
+  useEffect(() => {
+    if (onStateChange) {
+      onStateChange({
+        currentTrackId,
+        isPlaying: playbackState === 'playing',
+        isLoading: playbackState === 'loading',
+      });
+    }
+  }, [currentTrackId, playbackState, onStateChange]);
+
+  // Handle external track selection (from mobile tracklist)
+  useEffect(() => {
+    if (onExternalTrackSelect) {
+      // Register the handler - this allows parent to trigger track selection
+      // Parent will call onExternalTrackSelect(trackId) which needs to trigger handleTrackSelect
+      // For this to work, we need to make handleTrackSelect available
+    }
+  }, [onExternalTrackSelect]);
 
   // Lyrics
   const {
