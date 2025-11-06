@@ -1,380 +1,553 @@
-# Mobile Tracklist - Simplified Fixes for Click-to-Play and Scroll
+# SEO QUICK FIXES - Implementation Instructions
 
-## Issues Identified
+## Overview
+This document provides instructions for implementing critical SEO elements that are currently missing from the PRIMEAPE website. These fixes will improve search engine discoverability and provide rich search results.
 
-### Issue 1: Track Requires Two Clicks to Play
-**Problem:** The new auto-play effect is waiting for `playbackState === 'paused'`, but after loadTrack, the state might not be 'paused' yet, requiring a second interaction.
-
-**Solution:** Simplify by calling play directly in loadTrack callback, avoiding the complex effect logic.
-
-### Issue 2: Page Still Jumps to Tracklist on Load
-**Problem:** Even with the hasScrolledRef, the initial track load (track ID 1) triggers the scroll effect.
-
-**Solution:** More aggressive prevention - don't auto-scroll at all on mobile for the first track selection, or disable auto-scroll entirely for mobile tracklist.
+**Estimated Time:** 1 hour  
+**Complexity:** Simple  
+**Files to Create:** 3 new files  
+**Files to Modify:** 1 existing file  
 
 ---
 
-## Fix Instructions
+## Files to Create/Modify
 
-### Fix 1: Remove Complex Auto-Play Logic - Use Direct Approach
+### New Files:
+1. `public/robots.txt` - Search engine crawler instructions
+2. `public/sitemap.xml` - Site structure map for search engines
+3. `src/utils/structuredData.ts` - JSON-LD structured data generator
 
-Let's go back to basics and make it much simpler.
-
-#### File: `src/components/Player/Player.tsx`
-
-🔍 **FIND:**
-```tsx
-  // Handle track selection from tracklist
-  const handleTrackSelect = React.useCallback((trackId: number) => {
-    // If clicking the same track that's already loaded
-    if (trackId === currentTrackId) {
-      // Toggle play/pause
-      togglePlayPause();
-    } else {
-      // Load and play new track
-      loadTrack(trackId);
-      // Auto-play immediately after load starts
-      // The loadTrack sets state to 'loading', which will transition to 'paused' when ready
-      // We'll play as soon as it's ready via the effect below
-    }
-  }, [currentTrackId, togglePlayPause, loadTrack]);
-
-  // Auto-play when a new track finishes loading (for tracklist selections)
-  const previousTrackIdRef = React.useRef<number | null>(null);
-  React.useEffect(() => {
-    // When track changes and becomes ready to play
-    if (
-      currentTrackId !== null &&
-      currentTrackId !== previousTrackIdRef.current &&
-      playbackState === 'paused' &&
-      previousTrackIdRef.current !== null // Don't auto-play on initial load
-    ) {
-      // New track loaded and ready - auto-play it
-      togglePlayPause();
-    }
-    
-    // Update the ref
-    if (currentTrackId !== previousTrackIdRef.current) {
-      previousTrackIdRef.current = currentTrackId;
-    }
-  }, [currentTrackId, playbackState, togglePlayPause]);
-```
-
-✏️ **REPLACE WITH:**
-```tsx
-  // Handle track selection from tracklist
-  const handleTrackSelect = React.useCallback((trackId: number) => {
-    // If clicking the same track that's already loaded
-    if (trackId === currentTrackId) {
-      // Toggle play/pause
-      togglePlayPause();
-    } else {
-      // Load new track
-      loadTrack(trackId);
-      
-      // Wait for track to be ready, then play
-      const audio = audioRef.current;
-      if (!audio) return;
-      
-      const playWhenReady = () => {
-        // Play as soon as metadata is loaded
-        audio.play().catch(err => {
-          console.error('Auto-play failed:', err);
-        });
-        audio.removeEventListener('canplay', playWhenReady);
-      };
-      
-      // If already can play, play immediately
-      if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
-        audio.play().catch(err => {
-          console.error('Auto-play failed:', err);
-        });
-      } else {
-        // Otherwise wait for canplay event
-        audio.addEventListener('canplay', playWhenReady, { once: true });
-      }
-    }
-  }, [currentTrackId, togglePlayPause, loadTrack, audioRef]);
-```
-
-**What Changed:**
-- Removed the complex useEffect with refs and state watching
-- Directly uses audio element's `canplay` event to know when track is ready
-- Calls `audio.play()` directly instead of going through togglePlayPause
-- Checks if audio is already ready to avoid waiting unnecessarily
-- Uses `{ once: true }` to auto-remove the event listener
-- Much simpler and more predictable
+### Files to Modify:
+1. `index.html` - Add canonical URL and structured data
 
 ---
 
-### Fix 2: Completely Prevent Auto-Scroll on Initial Load
+## 1. CREATE: `public/robots.txt`
 
-The most reliable way is to not scroll until explicitly told to by user interaction.
+**File Path:** `public/robots.txt`
 
-#### File: `src/components/Tracklist/Tracklist.tsx`
+**Purpose:** Tells search engine crawlers which parts of your site to crawl and where to find your sitemap.
 
-🔍 **FIND:**
-```tsx
-  // Track if this is the initial mount
-  const hasScrolledRef = React.useRef(false);
+**Complete File Content:**
 
-  // Auto-scroll to current track when it changes
-  useEffect(() => {
-    if (!currentTrackId) return;
+```txt
+# Robots.txt for primeape.org
+# Allow all search engines to crawl everything
 
-    const tracklist = tracklistRef.current;
-    const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
+User-agent: *
+Allow: /
 
-    if (tracklist && currentTrackElement) {
-      // On first scroll (when track is first selected), don't animate and don't scroll page
-      if (!hasScrolledRef.current) {
-        hasScrolledRef.current = true;
-        // Scroll without animation and only within container (don't affect page scroll)
-        currentTrackElement.scrollIntoView({
-          behavior: 'auto', // Instant, no animation on first load
-          block: 'center',
-          inline: 'nearest',
-        });
-      } else {
-        // Subsequent scrolls can be smooth
-        currentTrackElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
-      }
-    }
-  }, [currentTrackId]);
+# Sitemap location
+Sitemap: https://primeape.org/sitemap.xml
+
+# Crawl-delay (optional, helps prevent server overload)
+# Crawl-delay: 1
+
+# Block common bot traps (if you add them later)
+Disallow: /api/
+Disallow: /*.json$
 ```
 
-✏️ **REPLACE WITH:**
-```tsx
-  // Track if user has interacted (clicked a track)
-  const userHasInteractedRef = React.useRef(false);
-  const previousTrackIdRef = React.useRef<number | null>(null);
-
-  // Auto-scroll to current track when it changes (but only after user interaction)
-  useEffect(() => {
-    if (!currentTrackId) return;
-
-    // If track changed from one to another (not initial load), mark as interacted
-    if (previousTrackIdRef.current !== null && currentTrackId !== previousTrackIdRef.current) {
-      userHasInteractedRef.current = true;
-    }
-    
-    // Update the ref
-    previousTrackIdRef.current = currentTrackId;
-
-    // Only scroll if user has explicitly changed tracks
-    if (!userHasInteractedRef.current) return;
-
-    const tracklist = tracklistRef.current;
-    const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
-
-    if (tracklist && currentTrackElement) {
-      // Scroll current track into view (centered if possible)
-      currentTrackElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    }
-  }, [currentTrackId]);
-```
-
-**What Changed:**
-- Uses `userHasInteractedRef` to track if user has clicked a track
-- Uses `previousTrackIdRef` to detect actual track changes (not initial load)
-- Only scrolls after `previousTrackIdRef` has been set (meaning at least one track change has occurred)
-- Completely prevents any scrolling on initial page load when track 1 loads by default
-- Once user clicks a track, subsequent changes will scroll normally
+**Why This Matters:**
+- Explicitly tells search engines they can crawl your entire site
+- Points to your sitemap for efficient indexing
+- Can be updated later to block specific paths if needed
 
 ---
 
-### Alternative Approach: Disable Auto-Scroll for Mobile Tracklist Only
+## 2. CREATE: `public/sitemap.xml`
 
-If you'd prefer, we can disable auto-scroll entirely for the mobile tracklist (since it's in ContentSections, not the player area where it's less important).
+**File Path:** `public/sitemap.xml`
 
-#### File: `src/components/ContentSections/ContentSections.tsx`
+**Purpose:** Provides search engines with a complete list of pages to index, with priority and update frequency hints.
 
-Add a prop to disable auto-scroll for the mobile instance:
+**Complete File Content:**
 
-🔍 **FIND:**
-```tsx
-      {/* Mobile Tracklist - only visible on tablet/mobile */}
-      <div className="content-sections__mobile-tracklist">
-        <Tracklist
-          tracks={FOUNDATION_ALBUM.tracks}
-          currentTrackId={currentTrackId}
-          isPlaying={isPlaying}
-          isLoading={isLoading}
-          onTrackSelect={onTrackSelect}
-        />
-      </div>
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  
+  <!-- Homepage / Main Player -->
+  <url>
+    <loc>https://primeape.org/</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://primeape.org/artwork/foundation-cover.jpg</image:loc>
+      <image:title>FOUNDATION Album Cover</image:title>
+      <image:caption>FOUNDATION by PRIMEAPE - Album Artwork</image:caption>
+    </image:image>
+  </url>
+  
+  <!-- About Section (anchor link, but valuable for context) -->
+  <url>
+    <loc>https://primeape.org/#about</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Merch Section (anchor link) -->
+  <url>
+    <loc>https://primeape.org/#merch</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Contact Section (anchor link) -->
+  <url>
+    <loc>https://primeape.org/#contact</loc>
+    <lastmod>2024-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+</urlset>
 ```
 
-✏️ **REPLACE WITH:**
-```tsx
-      {/* Mobile Tracklist - only visible on tablet/mobile */}
-      <div className="content-sections__mobile-tracklist">
-        <Tracklist
-          tracks={FOUNDATION_ALBUM.tracks}
-          currentTrackId={currentTrackId}
-          isPlaying={isPlaying}
-          isLoading={isLoading}
-          onTrackSelect={onTrackSelect}
-          disableAutoScroll={true}
-        />
-      </div>
-```
+**Instructions for Maintenance:**
+- Update `<lastmod>` dates when you make significant changes to content
+- Update the date format to ISO 8601: `YYYY-MM-DD`
+- When you add the actual album artwork, the image URL will already be correct
+- If you add separate pages later (blog, individual track pages, etc.), add them here
 
-#### File: `src/components/Tracklist/Tracklist.tsx`
+**Priority Guidelines:**
+- `1.0` = Homepage (most important)
+- `0.8` = Major sections (About)
+- `0.7` = Secondary sections (Merch)
+- `0.6` = Tertiary sections (Contact)
 
-Add the prop to the interface and use it:
+---
 
-🔍 **FIND:**
-```tsx
-interface TracklistProps {
+## 3. CREATE: `src/utils/structuredData.ts`
+
+**File Path:** `src/utils/structuredData.ts`
+
+**Purpose:** Generate JSON-LD structured data for rich search results. This tells Google exactly what your content is (a music album) and enables rich snippets in search results.
+
+**Complete File Content:**
+
+```typescript
+/**
+ * Structured Data (JSON-LD) Generator
+ * 
+ * Generates schema.org markup for SEO and rich search results.
+ * This helps search engines understand that this is a music album page.
+ * 
+ * Reference: https://schema.org/MusicAlbum
+ */
+
+import type { Track } from '@/types';
+
+interface StructuredDataConfig {
+  albumName: string;
+  artistName: string;
+  releaseDate: string; // ISO 8601 format: YYYY-MM-DD
+  genre: string;
+  description: string;
+  albumArtworkUrl: string;
+  websiteUrl: string;
   tracks: Track[];
-  currentTrackId: number | null;
-  isPlaying: boolean;
-  isLoading: boolean;
-  onTrackSelect: (trackId: number) => void;
+}
+
+/**
+ * Generate MusicAlbum structured data
+ * 
+ * @param config - Album and track information
+ * @returns JSON-LD script content as string
+ */
+export function generateMusicAlbumStructuredData(config: StructuredDataConfig): string {
+  const {
+    albumName,
+    artistName,
+    releaseDate,
+    genre,
+    description,
+    albumArtworkUrl,
+    websiteUrl,
+    tracks
+  } = config;
+
+  // Build track list with schema.org MusicRecording format
+  const trackList = tracks.map((track, index) => ({
+    "@type": "MusicRecording",
+    "name": track.title,
+    "position": index + 1,
+    "duration": formatDurationISO8601(track.duration),
+    "byArtist": {
+      "@type": "MusicGroup",
+      "name": artistName
+    }
+  }));
+
+  // Main MusicAlbum structured data
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "MusicAlbum",
+    "name": albumName,
+    "byArtist": {
+      "@type": "MusicGroup",
+      "name": artistName,
+      "genre": genre
+    },
+    "datePublished": releaseDate,
+    "genre": genre,
+    "description": description,
+    "image": albumArtworkUrl,
+    "url": websiteUrl,
+    "numTracks": tracks.length,
+    "track": trackList,
+    "albumProductionType": "http://schema.org/StudioAlbum",
+    "inLanguage": "en-US"
+  };
+
+  return JSON.stringify(structuredData, null, 2);
+}
+
+/**
+ * Convert duration in seconds to ISO 8601 duration format
+ * Example: 245 seconds -> "PT4M5S" (4 minutes, 5 seconds)
+ * 
+ * @param seconds - Duration in seconds
+ * @returns ISO 8601 duration string
+ */
+function formatDurationISO8601(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  
+  return `PT${minutes}M${remainingSeconds}S`;
+}
+
+/**
+ * Generate Organization structured data for the artist
+ * This can be added alongside the MusicAlbum data
+ * 
+ * @param artistName - Name of the artist/band
+ * @param websiteUrl - Official website URL
+ * @returns JSON-LD script content as string
+ */
+export function generateArtistStructuredData(
+  artistName: string,
+  websiteUrl: string
+): string {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "MusicGroup",
+    "name": artistName,
+    "genre": "Hip-Hop",
+    "url": websiteUrl,
+    "sameAs": [
+      // Add social media links when available
+      // "https://www.instagram.com/primeape",
+      // "https://twitter.com/primeape",
+      // "https://open.spotify.com/artist/..."
+    ]
+  };
+
+  return JSON.stringify(structuredData, null, 2);
+}
+
+/**
+ * Generate WebSite structured data with search action
+ * Helps Google understand your site structure
+ * 
+ * @param websiteUrl - Your website URL
+ * @returns JSON-LD script content as string
+ */
+export function generateWebsiteStructuredData(websiteUrl: string): string {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "PRIMEAPE - FOUNDATION",
+    "url": websiteUrl,
+    "description": "Official website for FOUNDATION album by PRIMEAPE",
+    "inLanguage": "en-US"
+  };
+
+  return JSON.stringify(structuredData, null, 2);
 }
 ```
 
-✏️ **REPLACE WITH:**
-```tsx
-interface TracklistProps {
-  tracks: Track[];
-  currentTrackId: number | null;
-  isPlaying: boolean;
-  isLoading: boolean;
-  onTrackSelect: (trackId: number) => void;
-  disableAutoScroll?: boolean;
-}
-```
-
-🔍 **FIND:**
-```tsx
-const Tracklist: React.FC<TracklistProps> = ({
-  tracks,
-  currentTrackId,
-  isPlaying,
-  isLoading,
-  onTrackSelect,
-}) => {
-```
-
-✏️ **REPLACE WITH:**
-```tsx
-const Tracklist: React.FC<TracklistProps> = ({
-  tracks,
-  currentTrackId,
-  isPlaying,
-  isLoading,
-  onTrackSelect,
-  disableAutoScroll = false,
-}) => {
-```
-
-🔍 **FIND:**
-```tsx
-  // Auto-scroll to current track when it changes
-  useEffect(() => {
-    if (!currentTrackId) return;
-```
-
-✏️ **REPLACE WITH:**
-```tsx
-  // Auto-scroll to current track when it changes
-  useEffect(() => {
-    if (!currentTrackId || disableAutoScroll) return;
-```
-
-**What This Does:**
-- Completely disables auto-scroll for mobile tracklist
-- Desktop tracklist (in player) still auto-scrolls normally
-- Simplest solution - no complexity around tracking interaction
-- User can manually scroll mobile tracklist if needed
+**Key Features:**
+- **Type-safe** - Uses existing Track types from your project
+- **ISO 8601 duration conversion** - Converts seconds to proper format for search engines
+- **Multiple structured data types** - Album, Artist, and Website schemas
+- **Extensible** - Easy to add social media links later
 
 ---
 
-## Recommendation
+## 4. MODIFY: `index.html`
 
-**Use this combination:**
+**File Path:** `index.html`
 
-1. **Fix 1 (Simplified Click-to-Play)** - REQUIRED
-   - Removes complex state watching
-   - Uses direct audio.play() with canplay event
-   - Should work on first click every time
+**Changes Required:**
 
-2. **Fix 2 (Interaction-Based Scroll)** - RECOMMENDED
-   - Prevents scroll until user explicitly changes tracks
-   - More natural behavior
-   - Doesn't scroll on initial page load
+### A. Add Canonical URL (in `<head>` section)
 
-**OR, if scroll is still problematic:**
+**Location:** Add after the existing meta tags, before the Open Graph tags
 
-3. **Alternative Approach (Disable Mobile Auto-Scroll)** - SIMPLEST
-   - Just turns off auto-scroll for mobile tracklist
-   - Guarantees no page jumping
-   - Desktop still works normally
+```html
+    <!-- Canonical URL (prevents duplicate content issues) -->
+    <link rel="canonical" href="https://primeape.org/" />
+```
+
+### B. Add Structured Data Script (before closing `</head>` tag)
+
+**Location:** Add just before `</head>`
+
+```html
+    <!-- Structured Data for Rich Search Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "MusicAlbum",
+      "name": "FOUNDATION",
+      "byArtist": {
+        "@type": "MusicGroup",
+        "name": "PRIMEAPE",
+        "genre": "Hip-Hop"
+      },
+      "datePublished": "2024-01-15",
+      "genre": "Hip-Hop",
+      "description": "Philosophical hip-hop album featuring 16 tracks exploring themes of existence, purpose, and human nature.",
+      "image": "https://primeape.org/artwork/foundation-cover.jpg",
+      "url": "https://primeape.org",
+      "numTracks": 16,
+      "albumProductionType": "http://schema.org/StudioAlbum",
+      "inLanguage": "en-US"
+    }
+    </script>
+```
+
+### C. Update Existing Meta Description (optional improvement)
+
+**Current:**
+```html
+<meta name="description" content="Stream and download FOUNDATION by PRIMEAPE. Philosophical hip-hop featuring 16 tracks. Listen to instrumentals and full versions with lyrics." />
+```
+
+**Improved (more compelling for search results):**
+```html
+<meta name="description" content="Stream and download FOUNDATION by PRIMEAPE. 16-track philosophical hip-hop album exploring existence, purpose, and human nature. Free download with lyrics, instrumentals, and vocal versions." />
+```
+
+**Reason for Change:** 
+- More specific about content (existence, purpose, human nature)
+- Emphasizes "free download" for click-through appeal
+- Still under 160 characters (optimal for Google snippets)
 
 ---
 
-## Testing After Fixes
+## Complete Modified `index.html` Head Section
 
-### Click-to-Play:
-- [ ] Fresh page load
-- [ ] Click track 1 → plays immediately (not two clicks)
-- [ ] Click track 2 → plays immediately
-- [ ] Click track 3 → plays immediately
-- [ ] Click same track → toggles play/pause correctly
+For reference, here's what the complete `<head>` section should look like after all changes:
 
-### Page Load Scroll:
-- [ ] Fresh page load → page stays at top (doesn't jump)
-- [ ] Page loads showing player at top
-- [ ] Tracklist visible but not forcing scroll
-- [ ] First track click works and doesn't cause jarring scroll
-
-### Ongoing Behavior:
-- [ ] Switching tracks works smoothly
-- [ ] Desktop tracklist unaffected (still auto-scrolls)
-- [ ] Mobile tracklist shows current track indicator
-- [ ] No console errors
+```html
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- SEO Meta Tags -->
+  <title>PRIMEAPE - FOUNDATION | Official Album Website</title>
+  <meta name="description" content="Stream and download FOUNDATION by PRIMEAPE. 16-track philosophical hip-hop album exploring existence, purpose, and human nature. Free download with lyrics, instrumentals, and vocal versions." />
+  <meta name="keywords" content="PRIMEAPE, FOUNDATION, hip-hop, album, music, streaming, philosophy, free download" />
+  <meta name="author" content="PRIMEAPE" />
+  
+  <!-- Canonical URL (prevents duplicate content issues) -->
+  <link rel="canonical" href="https://primeape.org/" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="music.album" />
+  <meta property="og:title" content="PRIMEAPE - FOUNDATION" />
+  <meta property="og:description" content="Philosophical hip-hop album featuring 16 tracks" />
+  <meta property="og:url" content="https://primeape.org" />
+  <meta property="og:image" content="https://primeape.org/artwork/foundation-cover.jpg" />
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="PRIMEAPE - FOUNDATION" />
+  <meta name="twitter:description" content="Philosophical hip-hop album featuring 16 tracks" />
+  <meta name="twitter:image" content="https://primeape.org/artwork/foundation-cover.jpg" />
+  
+  <!-- Favicon (placeholder for now) -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  
+  <!-- Preconnect for performance (if using external fonts later) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  
+  <!-- Structured Data for Rich Search Results -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MusicAlbum",
+    "name": "FOUNDATION",
+    "byArtist": {
+      "@type": "MusicGroup",
+      "name": "PRIMEAPE",
+      "genre": "Hip-Hop"
+    },
+    "datePublished": "2024-01-15",
+    "genre": "Hip-Hop",
+    "description": "Philosophical hip-hop album featuring 16 tracks exploring themes of existence, purpose, and human nature.",
+    "image": "https://primeape.org/artwork/foundation-cover.jpg",
+    "url": "https://primeape.org",
+    "numTracks": 16,
+    "albumProductionType": "http://schema.org/StudioAlbum",
+    "inLanguage": "en-US"
+  }
+  </script>
+</head>
+```
 
 ---
 
-## Why This is Simpler
+## Implementation Checklist
 
-### Previous Approach (Complex):
-```
-loadTrack → state changes → useEffect watches → checks conditions → togglePlayPause → more state changes → eventually plays
-```
+After Claude Code implements these changes, verify the following:
 
-### New Approach (Simple):
-```
-loadTrack → wait for canplay event → audio.play() → done
-```
+### Files Created:
+- [ ] `public/robots.txt` exists and is accessible at `https://primeape.org/robots.txt`
+- [ ] `public/sitemap.xml` exists and is accessible at `https://primeape.org/sitemap.xml`
+- [ ] `src/utils/structuredData.ts` exists and compiles without errors
 
-Much more direct and predictable!
+### HTML Modifications:
+- [ ] Canonical URL is present in `index.html`
+- [ ] Structured data script is present in `index.html`
+- [ ] Meta description is updated (optional)
+- [ ] No TypeScript compilation errors
+- [ ] Site still loads and functions correctly
+
+### Manual Testing:
+
+1. **Test robots.txt:**
+   - Navigate to `https://primeape.org/robots.txt` in browser
+   - Should display the text content clearly
+
+2. **Test sitemap.xml:**
+   - Navigate to `https://primeape.org/sitemap.xml` in browser
+   - Should display XML structure (may render as formatted XML or raw text depending on browser)
+
+3. **Test Structured Data:**
+   - Open browser DevTools → Elements tab
+   - Find the `<script type="application/ld+json">` in the `<head>`
+   - Copy the JSON content
+   - Paste into **Google's Rich Results Test**: https://search.google.com/test/rich-results
+   - Should validate as "MusicAlbum" with no errors
+
+4. **Test Canonical URL:**
+   - View page source
+   - Confirm `<link rel="canonical" href="https://primeape.org/" />` is present
 
 ---
 
-## Summary of Changes
+## After Implementation: Next Steps
 
-1. **Player.tsx handleTrackSelect:**
-   - Use audio element's `canplay` event directly
-   - Call `audio.play()` when ready
-   - No complex state watching or refs
+Once these quick fixes are live:
 
-2. **Tracklist.tsx auto-scroll:**
-   - Track user interaction with refs
-   - Only scroll after first explicit track change
-   - Prevents initial page load scroll
+1. **Submit to Google Search Console:**
+   - Go to https://search.google.com/search-console
+   - Add property for `primeape.org`
+   - Submit your sitemap URL: `https://primeape.org/sitemap.xml`
 
-3. **Alternative (if needed):**
-   - Add `disableAutoScroll` prop to Tracklist
-   - Set to `true` for mobile instance only
-   - Simplest solution if other approaches still have issues
+2. **Submit to Bing Webmaster Tools:**
+   - Go to https://www.bing.com/webmasters
+   - Add your site
+   - Submit sitemap
 
-Apply Fix 1 + Fix 2, and if scroll is still an issue, apply the Alternative Approach as well.
+3. **Monitor Indexing:**
+   - Check Search Console weekly for indexing status
+   - Look for any crawl errors
+   - Monitor search impressions and clicks
+
+4. **Update Sitemap Dates:**
+   - When you make significant content changes, update the `<lastmod>` dates in `sitemap.xml`
+   - Current date format: `YYYY-MM-DD`
+
+---
+
+## Technical Notes
+
+### Why Structured Data Matters:
+- **Rich Snippets:** Your album can appear in search results with album art, track count, and ratings
+- **Knowledge Graph:** Potential to appear in Google's Knowledge Graph panel
+- **Voice Search:** Better compatibility with voice assistants (Google Assistant, Alexa)
+- **Music-Specific Features:** Eligible for music carousels and enhanced music search results
+
+### Sitemap Best Practices:
+- Update `<lastmod>` dates when content changes significantly
+- Keep priorities relative (homepage = 1.0, subsections lower)
+- Include image information for album artwork (already configured)
+- Update weekly/monthly as you add content
+
+### Robots.txt Considerations:
+- Currently set to allow all crawlers on all paths
+- Can be updated later to block specific paths (like `/admin/` if you add backend)
+- Crawl-delay is commented out but available if needed
+
+---
+
+## Future Enhancements (Not in This Quick Fix)
+
+These can be addressed in the full SEO audit later:
+
+- **Alt text** for all images (when album artwork is added)
+- **Performance optimization** (lazy loading, code splitting)
+- **Google Search Console verification** meta tag
+- **Preload critical assets** for faster initial render
+- **Additional structured data** for individual tracks
+- **Social media verification** tags (when social accounts exist)
+- **Open Graph audio tags** for direct audio previews
+- **Breadcrumb structured data** (if you add multiple pages)
+
+---
+
+## Troubleshooting
+
+### If robots.txt doesn't load:
+- Ensure file is in `public/` folder, not `src/`
+- Netlify should serve `public/robots.txt` at root automatically
+- Clear browser cache and try again
+
+### If sitemap.xml doesn't load:
+- Same as robots.txt - must be in `public/` folder
+- Check Netlify build logs for any errors
+- Validate XML syntax if seeing errors
+
+### If structured data validation fails:
+- Copy JSON from page source (not the file)
+- Paste into validator: https://validator.schema.org/
+- Check for syntax errors (missing commas, quotes)
+- Ensure all URLs are absolute (include `https://`)
+
+### If search engines aren't indexing:
+- These fixes improve discoverability but don't guarantee immediate indexing
+- Google typically takes 1-4 weeks to index new sites
+- Submit sitemap via Search Console to speed up process
+- Ensure your domain DNS is properly configured
+
+---
+
+## Implementation Order
+
+For Claude Code, implement in this order:
+
+1. **Create `public/robots.txt`** (simplest, no dependencies)
+2. **Create `public/sitemap.xml`** (also standalone)
+3. **Create `src/utils/structuredData.ts`** (utility for future use)
+4. **Modify `index.html`** (requires previous files as reference)
+5. **Test all changes** (manual verification)
+
+---
+
+## Questions or Issues?
+
+If Claude Code encounters any issues:
+- Check that file paths are exactly as specified
+- Ensure proper XML/JSON syntax (no extra commas, proper closing tags)
+- Verify that TypeScript compiles without errors
+- Test in browser after deployment to Netlify
+
+Return to Planning Claude with any questions or if validation reveals issues.
