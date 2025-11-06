@@ -163,14 +163,31 @@ const Player: React.FC<PlayerProps> = ({
     } else {
       // Load and play new track
       loadTrack(trackId);
-      // Auto-play after a short delay to let track load
-      setTimeout(() => {
-        if (playbackState !== 'playing') {
-          togglePlayPause();
-        }
-      }, 100);
+      // Auto-play immediately after load starts
+      // The loadTrack sets state to 'loading', which will transition to 'paused' when ready
+      // We'll play as soon as it's ready via the effect below
     }
-  }, [currentTrackId, playbackState, togglePlayPause, loadTrack]);
+  }, [currentTrackId, togglePlayPause, loadTrack]);
+
+  // Auto-play when a new track finishes loading (for tracklist selections)
+  const previousTrackIdRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    // When track changes and becomes ready to play
+    if (
+      currentTrackId !== null &&
+      currentTrackId !== previousTrackIdRef.current &&
+      playbackState === 'paused' &&
+      previousTrackIdRef.current !== null // Don't auto-play on initial load
+    ) {
+      // New track loaded and ready - auto-play it
+      togglePlayPause();
+    }
+    
+    // Update the ref
+    if (currentTrackId !== previousTrackIdRef.current) {
+      previousTrackIdRef.current = currentTrackId;
+    }
+  }, [currentTrackId, playbackState, togglePlayPause]);
 
   // Expose track selection handler to parent via ref
   React.useEffect(() => {

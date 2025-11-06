@@ -8,7 +8,7 @@
   background-color: var(--color-bg);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: clip; /* Prevents content from triggering parent scroll */
   height: 100%;
   transition: background-color var(--transition-normal),
               border-color var(--transition-normal);
@@ -48,6 +48,9 @@
   overflow-y: auto;
   padding: var(--space-xs) 0;
   scroll-behavior: smooth;
+  /* Ensure this is the scroll container */
+  position: relative;
+  isolation: isolate; /* Creates new stacking context */
 }
 
 /* Custom scrollbar */
