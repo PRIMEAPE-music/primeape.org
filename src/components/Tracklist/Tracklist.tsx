@@ -28,6 +28,9 @@ const Tracklist: React.FC<TracklistProps> = ({
 }) => {
   const tracklistRef = useRef<HTMLDivElement>(null);
 
+  // Track if this is the initial mount
+  const hasScrolledRef = useRef(false);
+
   // Track if user has clicked a track (to enable auto-scroll)
   const userHasClickedRef = React.useRef(false);
   const previousTrackIdRef = React.useRef<number | null>(null);
