@@ -38,31 +38,35 @@ const Tracklist: React.FC<TracklistProps> = ({
     onTrackSelect(trackId);
   };
 
-  // Auto-scroll to current track when it changes (only after user interaction)
+  // Auto-scroll to current track when it changes
   useEffect(() => {
     if (!currentTrackId) return;
 
-    // Detect if this is a user-initiated track change (not initial load)
-    const isUserChange = previousTrackIdRef.current !== null && 
-                         currentTrackId !== previousTrackIdRef.current;
-    
-    // Update ref for next comparison
-    previousTrackIdRef.current = currentTrackId;
+    const tracklistContent = tracklistRef.current?.querySelector('.tracklist__content') as HTMLElement;
+    const currentTrackElement = tracklistContent?.querySelector('.tracklist-item--current') as HTMLElement;
 
-    // Only scroll if user has clicked a track OR if this is a subsequent track change
-    if (!userHasClickedRef.current && !isUserChange) {
-      return; // Skip scroll on initial page load
-    }
-
-    const tracklist = tracklistRef.current;
-    const currentTrackElement = tracklist?.querySelector('.tracklist-item--current') as HTMLElement;
-
-    if (tracklist && currentTrackElement) {
-      // Scroll current track into view
-      currentTrackElement.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
+    if (tracklistContent && currentTrackElement) {
+      // Calculate scroll position to center the element within the container
+      const containerRect = tracklistContent.getBoundingClientRect();
+      const elementRect = currentTrackElement.getBoundingClientRect();
+      
+      // Calculate how much to scroll to center the element
+      const scrollTop = tracklistContent.scrollTop;
+      const elementOffsetFromContainer = elementRect.top - containerRect.top;
+      const targetScroll = scrollTop + elementOffsetFromContainer - (containerRect.height / 2) + (elementRect.height / 2);
+      
+      // On first scroll (when track is first selected), don't animate
+      if (!hasScrolledRef.current) {
+        hasScrolledRef.current = true;
+        // Instant scroll without animation on first load
+        tracklistContent.scrollTop = targetScroll;
+      } else {
+        // Subsequent scrolls are smooth
+        tracklistContent.scrollTo({
+          top: targetScroll,
+          behavior: 'smooth'
+        });
+      }
     }
   }, [currentTrackId]);
 
