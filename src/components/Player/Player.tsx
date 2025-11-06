@@ -165,13 +165,26 @@ const Player: React.FC<PlayerProps> = ({
       // Load new track
       loadTrack(trackId);
       
-      // Use the play() function from useAudioPlayer which properly manages state
-      // Add a tiny delay to ensure loadTrack's state updates have completed
-      setTimeout(() => {
+      // Wait for the audio to be ready, then play
+      const audio = audioRef.current;
+      if (!audio) return;
+      
+      const playWhenReady = () => {
+        // Use the play() function from useAudioPlayer which properly manages state
         play();
-      }, 50);
+        audio.removeEventListener('canplay', playWhenReady);
+      };
+      
+      // If already can play, play immediately
+      if (audio.readyState >= 2) { // HAVE_CURRENT_DATA or better
+        // Small delay to let loadTrack complete
+        setTimeout(() => play(), 50);
+      } else {
+        // Otherwise wait for canplay event
+        audio.addEventListener('canplay', playWhenReady, { once: true });
+      }
     }
-  }, [currentTrackId, togglePlayPause, loadTrack, play]);  
+  }, [currentTrackId, togglePlayPause, loadTrack, play, audioRef]);  
   
   // Expose track selection handler to parent via ref
   React.useEffect(() => {
