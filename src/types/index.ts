@@ -73,12 +73,20 @@ export interface UserPreferences {
 export interface MerchProduct {
   id: string;
   name: string;
+  description: string;
   price: number;
   category: 'clothing' | 'music' | 'art';
-  images: string[]; // array of image URLs
-  sizes?: string[]; // for clothing
-  dimensions?: string[]; // for prints
-  printfulUrl: string; // link to Printful product page
+  images: string[]; // array of image URLs (first image is primary)
+  sizes?: string[]; // for clothing items
+  dimensions?: string[]; // for art prints
+  printfulUrl: string; // direct link to Printful product page
+}
+
+export type MerchCategory = 'clothing' | 'music' | 'art';
+
+export interface SelectedProductOptions {
+  size?: string;
+  dimension?: string;
 }
 
 // ============================================================================

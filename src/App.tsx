@@ -6,16 +6,17 @@ import './styles/global.css';
 
 /**
  * App Component
- * 
+ *
  * Root component of the application.
  * Manages shared player state for PlayerSection and ContentSections (mobile tracklist).
- * 
+ *
  * Phase 1: ✓ Basic layout structure
  * Phase 2: ✓ Music player with playback controls
  * Phase 3: ✓ Advanced player features (waveform, equalizer, volume)
  * Phase 4: ✓ Lyrics system
  * Phase 5: ✓ Tracklist & navigation
- * Phase 6: ✓ Content sections
+ * Phase 6: ✓ Content sections (Media Links, About, Shows, Contact)
+ * Phase 7: ✓ Merch system (Product grid, modals, Printful integration)
  * Mobile Enhancement: ✓ Player state shared with mobile tracklist
  */
 const App: React.FC = () => {

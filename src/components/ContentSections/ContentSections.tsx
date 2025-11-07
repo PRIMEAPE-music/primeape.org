@@ -1,6 +1,7 @@
 import React from 'react';
 import MediaLinksBar from './MediaLinksBar';
 import AboutSection from './AboutSection';
+import MerchSection from '../Merch/MerchSection';
 import ShowsSection from './ShowsSection';
 import ContactSection from './ContactSection';
 import Tracklist from '../Tracklist/Tracklist';
@@ -16,15 +17,16 @@ interface ContentSectionsProps {
 
 /**
  * ContentSections Component
- * 
+ *
  * Wrapper for all content sections below the player.
- * Renders sections in order: Tracklist (mobile only) → Media Links → About → Shows → Contact → Footer
- * 
+ * Renders sections in order: Tracklist (mobile only) → Media Links → About → Merch → Shows → Contact → Footer
+ *
  * Phase 6A: ✓ Basic structure
  * Phase 6B: ✓ MediaLinksBar
  * Phase 6C: ✓ AboutSection
  * Phase 6D: ✓ ShowsSection with scroll-to-contact
  * Phase 6E: ✓ ContactSection with Netlify Forms
+ * Phase 7: ✓ MerchSection with product grid and purchase flow
  * Mobile Enhancement: ✓ Tracklist visible below player on mobile
  */
 const ContentSections: React.FC<ContentSectionsProps> = ({
@@ -63,6 +65,7 @@ const ContentSections: React.FC<ContentSectionsProps> = ({
 
       <MediaLinksBar />
       <AboutSection />
+      <MerchSection />
       <ShowsSection onBookMeClick={handleBookMeClick} />
       <ContactSection ref={contactRef} />
       {/* Footer already exists in Layout - will stay there for now */}

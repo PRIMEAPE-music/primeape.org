@@ -5,6 +5,7 @@
 :root {
   /* ===== LIGHT MODE COLORS (Dark Grey Shades) ===== */
   --color-bg-light: #e8e8e8;              /* Light grey background */
+  --color-surface-light: #f5f5f5;         /* Lighter surface for cards/modals */
   --color-text-primary-light: #1c1c1c;    /* Near-black for primary text */
   --color-text-secondary-light: #3d3d3d;  /* Dark grey for secondary text */
   --color-accent-light: #5a5a5a;          /* Medium-dark grey for accents */
@@ -14,12 +15,16 @@
 
   /* ===== DARK MODE COLORS (Visible Grey Shades) ===== */
   --color-bg-dark: #2a2a2a;               /* Medium-dark grey background */
+  --color-surface-dark: #353535;          /* Lighter surface for cards/modals */
   --color-text-primary-dark: #e8e8e8;     /* Very light grey for primary text */
   --color-text-secondary-dark: #b8b8b8;   /* Light grey for secondary text */
   --color-accent-dark: #8a8a8a;           /* Medium grey for accents */
   --color-border-dark: #454545;           /* Lighter border for visibility */
   --color-hover-dark: #d0d0d0;            /* Bright grey for hover states */
   --color-active-dark: #f5f5f5;           /* Near-white for active states */
+
+  /* RGB values for rgba() usage */
+  --color-accent-rgb: 138, 138, 138;      /* Medium grey RGB values */
   
   /* ===== SPACING SCALE (8px grid system) ===== */
   --space-xs: 0.5rem; /* 8px */
@@ -93,6 +98,7 @@
 
   /* ===== DEFAULT THEME (Dark) ===== */
   --color-bg: var(--color-bg-dark);
+  --color-surface: var(--color-surface-dark);
   --color-text-primary: var(--color-text-primary-dark);
   --color-text-secondary: var(--color-text-secondary-dark);
   --color-accent: var(--color-accent-dark);
@@ -104,6 +110,7 @@
 /* Dark theme override */
 [data-theme='dark'] {
   --color-bg: var(--color-bg-dark);
+  --color-surface: var(--color-surface-dark);
   --color-text-primary: var(--color-text-primary-dark);
   --color-text-secondary: var(--color-text-secondary-dark);
   --color-accent: var(--color-accent-dark);
