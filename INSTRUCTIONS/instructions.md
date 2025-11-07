@@ -1,230 +1,201 @@
-CREATE: `src/utils/structuredData.ts`
+I'll help you resize the merch cards to fit in a single row. Let me first check the current implementation to see what we're working with.Let me search the project knowledge for merch-related files and implementation details.Now let me check the ProductCard component to see its current dimensions:Perfect! I can see the current implementation. The merch cards currently use a 2-column grid on desktop with an `aspect-ratio: 1 / 2` for the images. To fit 4 cards in a single row with approximately **1/3 the width** and **1/8 the height**, I'll need to modify the grid layout and significantly reduce the card dimensions.
 
-**File Path:** `src/utils/structuredData.ts`
-
-**Purpose:** Generate JSON-LD structured data for rich search results. This tells Google exactly what your content is (a music album) and enables rich snippets in search results.
-
-**Complete File Content:**
-
-```typescript
-/**
- * Structured Data (JSON-LD) Generator
- * 
- * Generates schema.org markup for SEO and rich search results.
- * This helps search engines understand that this is a music album page.
- * 
- * Reference: https://schema.org/MusicAlbum
- */
-
-import type { Track } from '@/types';
-
-interface StructuredDataConfig {
-  albumName: string;
-  artistName: string;
-  releaseDate: string; // ISO 8601 format: YYYY-MM-DD
-  genre: string;
-  description: string;
-  albumArtworkUrl: string;
-  websiteUrl: string;
-  tracks: Track[];
-}
-
-/**
- * Generate MusicAlbum structured data
- * 
- * @param config - Album and track information
- * @returns JSON-LD script content as string
- */
-export function generateMusicAlbumStructuredData(config: StructuredDataConfig): string {
-  const {
-    albumName,
-    artistName,
-    releaseDate,
-    genre,
-    description,
-    albumArtworkUrl,
-    websiteUrl,
-    tracks
-  } = config;
-
-  // Build track list with schema.org MusicRecording format
-  const trackList = tracks.map((track, index) => ({
-    "@type": "MusicRecording",
-    "name": track.title,
-    "position": index + 1,
-    "duration": formatDurationISO8601(track.duration),
-    "byArtist": {
-      "@type": "MusicGroup",
-      "name": artistName
-    }
-  }));
-
-  // Main MusicAlbum structured data
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "MusicAlbum",
-    "name": albumName,
-    "byArtist": {
-      "@type": "MusicGroup",
-      "name": artistName,
-      "genre": genre
-    },
-    "datePublished": releaseDate,
-    "genre": genre,
-    "description": description,
-    "image": albumArtworkUrl,
-    "url": websiteUrl,
-    "numTracks": tracks.length,
-    "track": trackList,
-    "albumProductionType": "http://schema.org/StudioAlbum",
-    "inLanguage": "en-US"
-  };
-
-  return JSON.stringify(structuredData, null, 2);
-}
-
-/**
- * Convert duration in seconds to ISO 8601 duration format
- * Example: 245 seconds -> "PT4M5S" (4 minutes, 5 seconds)
- * 
- * @param seconds - Duration in seconds
- * @returns ISO 8601 duration string
- */
-function formatDurationISO8601(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  
-  return `PT${minutes}M${remainingSeconds}S`;
-}
-
-/**
- * Generate Organization structured data for the artist
- * This can be added alongside the MusicAlbum data
- * 
- * @param artistName - Name of the artist/band
- * @param websiteUrl - Official website URL
- * @returns JSON-LD script content as string
- */
-export function generateArtistStructuredData(
-  artistName: string,
-  websiteUrl: string
-): string {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "MusicGroup",
-    "name": artistName,
-    "genre": "Hip-Hop",
-    "url": websiteUrl,
-    "sameAs": [
-      // Add social media links when available
-      // "https://www.instagram.com/primeape",
-      // "https://twitter.com/primeape",
-      // "https://open.spotify.com/artist/..."
-    ]
-  };
-
-  return JSON.stringify(structuredData, null, 2);
-}
-
-/**
- * Generate WebSite structured data with search action
- * Helps Google understand your site structure
- * 
- * @param websiteUrl - Your website URL
- * @returns JSON-LD script content as string
- */
-export function generateWebsiteStructuredData(websiteUrl: string): string {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "WebSite",
-    "name": "PRIMEAPE - FOUNDATION",
-    "url": websiteUrl,
-    "description": "Official website for FOUNDATION album by PRIMEAPE",
-    "inLanguage": "en-US"
-  };
-
-  return JSON.stringify(structuredData, null, 2);
-}
-```
-
-**Key Features:**
-- **Type-safe** - Uses existing Track types from your project
-- **ISO 8601 duration conversion** - Converts seconds to proper format for search engines
-- **Multiple structured data types** - Album, Artist, and Website schemas
-- **Extensible** - Easy to add social media links later
+Here are the CSS modifications:
 
 ---
 
-## 4. MODIFY: `index.html`
+📁 **File: src/components/Merch/MerchSection.css**
 
-**File Path:** `index.html`
+🔍 **FIND:**
+```css
+/* ============================================================================
+   DESKTOP GRID (≥768px)
+   ============================================================================ */
 
-**Changes Required:**
-
-### A. Add Canonical URL (in `<head>` section)
-
-**Location:** Add after the existing meta tags, before the Open Graph tags
-
-```html
-    
-    
+.merch-section__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+}
 ```
 
-### B. Add Structured Data Script (before closing `</head>` tag)
+✏️ **REPLACE WITH:**
+```css
+/* ============================================================================
+   DESKTOP GRID (≥768px)
+   ============================================================================ */
 
-**Location:** Add just before `</head>`
-
-```html
-    
-    
-    {
-      "@context": "https://schema.org",
-      "@type": "MusicAlbum",
-      "name": "FOUNDATION",
-      "byArtist": {
-        "@type": "MusicGroup",
-        "name": "PRIMEAPE",
-        "genre": "Hip-Hop"
-      },
-      "datePublished": "2024-01-15",
-      "genre": "Hip-Hop",
-      "description": "Philosophical hip-hop album featuring 16 tracks exploring themes of existence, purpose, and human nature.",
-      "image": "https://primeape.org/artwork/foundation-cover.jpg",
-      "url": "https://primeape.org",
-      "numTracks": 16,
-      "albumProductionType": "http://schema.org/StudioAlbum",
-      "inLanguage": "en-US"
-    }
-    
+.merch-section__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 columns for single-row layout */
+  gap: var(--space-md); /* Reduced gap for tighter layout */
+}
 ```
-
-### C. Update Existing Meta Description (optional improvement)
-
-**Current:**
-```html
-
-```
-
-**Improved (more compelling for search results):**
-```html
-
-```
-
-**Reason for Change:** 
-- More specific about content (existence, purpose, human nature)
-- Emphasizes "free download" for click-through appeal
-- Still under 160 characters (optimal for Google snippets)
 
 ---
 
-## Complete Modified `index.html` Head Section
+📁 **File: src/components/Merch/ProductCard.css**
 
-For reference, here's what the complete `<head>` section should look like after all changes:
+🔍 **FIND:**
+```css
+.product-card__image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 2; /* Match 1:2 ratio of product images */
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+```
 
-```html
+✏️ **REPLACE WITH:**
+```css
+.product-card__image-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 1; /* Much wider ratio for compact single-row layout */
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+```
 
-  
-  
-  
-  
-  PRIMEAPE - FOUNDATION | Official Album Website
+---
+
+🔍 **FIND:**
+```css
+.product-card__info {
+  padding: var(--space-md);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+```
+
+✏️ **REPLACE WITH:**
+```css
+.product-card__info {
+  padding: var(--space-sm); /* Reduced padding for compact layout */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs); /* Tighter gap between name and price */
+}
+```
+
+---
+
+🔍 **FIND:**
+```css
+.product-card__name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.3;
+}
+```
+
+✏️ **REPLACE WITH:**
+```css
+.product-card__name {
+  font-size: var(--font-size-sm); /* Smaller text for compact cards */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+```
+
+---
+
+🔍 **FIND:**
+```css
+.product-card__price {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+  margin: 0;
+}
+```
+
+✏️ **REPLACE WITH:**
+```css
+.product-card__price {
+  font-size: var(--font-size-base); /* Smaller price text */
+  font-weight: var(--font-weight-bold);
+  color: var(--color-accent);
+  margin: 0;
+}
+```
+
+---
+
+🔍 **FIND:**
+```css
+.product-card__category {
+  position: absolute;
+  top: var(--space-sm);
+  right: var(--space-sm);
+  z-index: 2;
+  padding: var(--space-xs) var(--space-sm);
+  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--color-accent);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(4px);
+}
+```
+
+✏️ **REPLACE WITH:**
+```css
+.product-card__category {
+  position: absolute;
+  top: var(--space-xs); /* Adjusted for smaller cards */
+  right: var(--space-xs);
+  z-index: 2;
+  padding: var(--space-2xs) var(--space-xs); /* Smaller padding */
+  background-color: rgba(0, 0, 0, 0.8);
+  color: var(--color-accent);
+  font-size: 10px; /* Smaller font for compact badge */
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-radius: var(--radius-sm);
+  backdrop-filter: blur(4px);
+}
+```
+
+---
+
+➕ **ADD AFTER:** the tablet breakpoint section (around line 140 in MerchSection.css)
+
+```css
+/* Large desktop: Ensure 4-column layout stays readable */
+@media (min-width: 1600px) {
+  .merch-section__grid {
+    max-width: 1400px; /* Cap maximum width for very large screens */
+    margin: 0 auto;
+  }
+}
+```
+
+---
+
+## Summary of Changes
+
+These modifications will:
+
+1. **Change the grid from 2 columns to 4 columns** - displaying all products in a single row on desktop
+2. **Dramatically reduce the image height** - changing aspect ratio from `1:2` (tall) to `4:1` (wide/short)
+3. **Reduce all padding and spacing** - tighter gaps between cards and less internal padding
+4. **Scale down text sizes** - smaller product names, prices, and category badges
+5. **Maintain responsive behavior** - mobile carousel remains unchanged
+
+The result will be **compact, horizontal cards** that display approximately:
+- **~1/3 the original width** (due to 4 columns vs 2)
+- **~1/8 the original height** (due to 4:1 aspect ratio vs 1:2, plus reduced padding)
+
+This creates a more "gallery strip" appearance perfect for a single-row merchandise showcase!

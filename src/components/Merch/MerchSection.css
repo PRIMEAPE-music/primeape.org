@@ -47,8 +47,8 @@
 
 .merch-section__grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-xl);
+  grid-template-columns: repeat(4, 1fr); /* 4 columns for single-row layout */
+  gap: var(--space-md); /* Reduced gap for tighter layout */
 }
 
 /* ============================================================================
@@ -165,6 +165,14 @@
 /* ============================================================================
    RESPONSIVE BREAKPOINTS
    ============================================================================ */
+
+/* Large desktop: Ensure 4-column layout stays readable */
+@media (min-width: 1600px) {
+  .merch-section__grid {
+    max-width: 1400px; /* Cap maximum width for very large screens */
+    margin: 0 auto;
+  }
+}
 
 /* Tablet: Show 2 columns but smaller gap */
 @media (max-width: 1024px) {

@@ -1,6 +1,5 @@
 import React from 'react';
 import MediaLinksBar from './MediaLinksBar';
-import AboutSection from './AboutSection';
 import MerchSection from '../Merch/MerchSection';
 import ShowsSection from './ShowsSection';
 import ContactSection from './ContactSection';
@@ -64,7 +63,6 @@ const ContentSections: React.FC<ContentSectionsProps> = ({
       </div>
 
       <MediaLinksBar />
-      <AboutSection />
       <MerchSection />
       <ShowsSection onBookMeClick={handleBookMeClick} />
       <ContactSection ref={contactRef} />
