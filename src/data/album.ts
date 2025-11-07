@@ -17,7 +17,7 @@ const tracks: Track[] = [
     duration: 182, // 2:47 - Example updated duration
     vocalFile: '/music/vocal/01-A-GOOD-DAY.mp3',
     instrumentalFile: '/music/instrumental/01-A-GOOD-DAY-instrumental.mp3',
-    lyricsFile: '/lyrics/test.lrc', // Test lyrics file
+    lyricsFile: null,
     hasVocals: false, // Set to true when vocal version is uploaded
   },
   {
