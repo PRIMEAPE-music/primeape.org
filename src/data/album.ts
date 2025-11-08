@@ -143,8 +143,8 @@ const tracks: Track[] = [
     duration: 167,
     vocalFile: '/music/vocal/15-BATTLES.mp3',
     instrumentalFile: '/music/instrumental/15-BATTLES-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/15-BATTLES.lrc',
+    hasVocals: true,
   },
   {
     id: 16,
