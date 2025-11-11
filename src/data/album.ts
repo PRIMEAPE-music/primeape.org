@@ -41,7 +41,7 @@ const tracks: Track[] = [
   {
     id: 4,
     title: 'HISTORY',
-    duration: 143,
+    duration: 142,
     vocalFile: '/music/vocal/04-HISTORY.mp3',
     instrumentalFile: '/music/instrumental/04-HISTORY-instrumental.mp3',
     lyricsFile: '/lyrics/04-HISTORY.lrc',
