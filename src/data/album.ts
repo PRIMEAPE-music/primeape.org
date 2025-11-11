@@ -62,8 +62,8 @@ const tracks: Track[] = [
     duration: 205,
     vocalFile: '/music/vocal/06-LIGHT.mp3',
     instrumentalFile: '/music/instrumental/06-LIGHT-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/06-LIGHT.lrc',
+    hasVocals: true,
   },
   {
     id: 7,
