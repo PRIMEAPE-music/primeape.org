@@ -95,7 +95,7 @@ const tracks: Track[] = [
   {
     id: 10,
     title: 'JOY',
-    duration: 134,
+    duration: 133,
     vocalFile: '/music/vocal/10-JOY.mp3',
     instrumentalFile: '/music/instrumental/10-JOY-instrumental.mp3',
     lyricsFile: '/lyrics/10-JOY.lrc',
