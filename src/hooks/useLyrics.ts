@@ -26,8 +26,9 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
   // Load display state from localStorage
   const [displayState, setDisplayState] = useState<LyricsDisplayState>(() => {
     const saved = localStorage.getItem('primeape_lyrics_display');
-    // Default to 'panel' for better UX (panel always visible on desktop)
-    return (saved as LyricsDisplayState) || 'panel';
+    // Default to 'panel' on desktop, 'hidden' on mobile for better UX
+    if (saved) return saved as LyricsDisplayState;
+    return window.innerWidth >= 1100 ? 'panel' : 'hidden';
   });
 
   // Load lyrics when URL changes
