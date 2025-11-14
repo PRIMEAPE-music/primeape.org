@@ -152,8 +152,8 @@ const tracks: Track[] = [
     duration: 172,
     vocalFile: '/music/vocal/16-ELEVATION.mp3',
     instrumentalFile: '/music/instrumental/16-ELEVATION-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/16-ELEVATION.lrc',
+    hasVocals: true,
   },
 ];
 
