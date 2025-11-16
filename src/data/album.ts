@@ -53,8 +53,8 @@ const tracks: Track[] = [
     duration: 226,
     vocalFile: '/music/vocal/05-VICE.mp3',
     instrumentalFile: '/music/instrumental/05-VICE-instrumental.mp3',
-    lyricsFile: null,
-    hasVocals: false,
+    lyricsFile: '/lyrics/05-VICE.lrc',
+    hasVocals: true,
   },
   {
     id: 6,
