@@ -90,6 +90,28 @@
   color: var(--color-text-secondary);
 }
 
+/* Coming soon state */
+.shows-section__coming-soon {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-xl);
+  transition:
+    background-color var(--transition-normal),
+    border-color var(--transition-normal);
+}
+
+.shows-section__coming-soon-text {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
 /* Call-to-action area */
 .shows-section__cta {
   text-align: center;
