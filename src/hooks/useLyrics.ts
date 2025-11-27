@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { loadLRC, ParsedLRC } from '@/utils/lrcParser';
 import type { LyricsDisplayState } from '@/types';
+import { trackLyricsToggle } from '@/utils/analytics';
 
 interface UseLyricsReturn {
   lyrics: ParsedLRC | null;
@@ -106,7 +107,10 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
 
       // Save to localStorage
       localStorage.setItem('primeape_lyrics_display', next);
-      
+
+      // Track lyrics toggle
+      trackLyricsToggle({ new_state: next });
+
       return next;
     });
   };

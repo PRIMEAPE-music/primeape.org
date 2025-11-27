@@ -10,6 +10,7 @@ import Controls from './Controls';
 import VolumeControl from './VolumeControl';
 import ShuffleButton from './ShuffleButton';
 import RepeatButton from './RepeatButton';
+import DownloadVocalButton from './DownloadVocalButton';
 import EqualizerToggle from './EqualizerToggle';
 import VersionToggle from './VersionToggle';
 import LyricsToggle from '../Lyrics/LyricsToggle';
@@ -320,6 +321,9 @@ const Player: React.FC<PlayerProps> = ({
           repeatMode={repeatMode}
           onToggle={toggleRepeat}
         />
+
+        {/* Download Vocal Button */}
+        <DownloadVocalButton track={currentTrack} />
       </div>
 
       {/* Mobile/Tablet Lyrics Panel (< 1100px) */}

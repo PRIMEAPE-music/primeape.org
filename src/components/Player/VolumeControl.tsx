@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import './VolumeControl.css';
+import { trackVolumeChange } from '@/utils/analytics';
 
 interface VolumeControlProps {
   volume: number; // 0-1
@@ -89,11 +90,22 @@ const VolumeControl: React.FC<VolumeControlProps> = ({
     onVolumeChange(percentage);
   }, [isDragging, onVolumeChange]);
 
+  // Ref for debouncing volume tracking
+  const volumeTrackingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   /**
    * Handle drag end
    */
   const handlePointerUp = () => {
     setIsDragging(false);
+
+    // Track volume change with debouncing (only fires once after drag ends)
+    if (volumeTrackingRef.current) {
+      clearTimeout(volumeTrackingRef.current);
+    }
+    volumeTrackingRef.current = setTimeout(() => {
+      trackVolumeChange({ new_volume: Math.round(volume * 100) });
+    }, 300);
   };
 
   // Attach global listeners for drag

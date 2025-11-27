@@ -1,6 +1,7 @@
 import React from 'react';
 import type { RepeatMode } from '@/types';
 import './RepeatButton.css';
+import { trackRepeatToggle } from '@/utils/analytics';
 
 interface RepeatButtonProps {
   repeatMode: RepeatMode;
@@ -26,10 +27,17 @@ const RepeatButton: React.FC<RepeatButtonProps> = ({
     return 'Repeat: One';
   };
 
+  const handleClick = () => {
+    onToggle();
+    // Determine and track the NEW mode (after toggle: off → all → one → off)
+    const nextMode: RepeatMode = repeatMode === 'off' ? 'all' : repeatMode === 'all' ? 'one' : 'off';
+    trackRepeatToggle({ mode: nextMode });
+  };
+
   return (
     <button
       className={`repeat-button ${repeatMode !== 'off' ? 'repeat-button--active' : ''}`}
-      onClick={onToggle}
+      onClick={handleClick}
       aria-label={`Repeat mode: ${repeatMode}`}
       title={getTitle()}
     >

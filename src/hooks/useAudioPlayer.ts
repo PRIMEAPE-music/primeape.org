@@ -2,6 +2,15 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { PlaybackState, AudioVersion, RepeatMode } from '@/types';
 import { getTrackById, getNextTrackId, getPreviousTrackId, FOUNDATION_ALBUM } from '@/data/album';
 import { shuffleArray, getNextShuffledItem, getPreviousShuffledItem } from '@/utils/shuffleArray';
+import {
+  trackPlay,
+  trackPause,
+  trackComplete,
+  trackSkip,
+  trackAudioError,
+  trackSeek,
+  trackVersionToggle
+} from '@/utils/analytics';
 
 interface UseAudioPlayerReturn {
   // State
@@ -169,12 +178,24 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
       await audio.play();
       setPlaybackState('playing');
       setError(null);
+
+      // Track play event
+      if (currentTrackId) {
+        const track = getTrackById(currentTrackId);
+        if (track) {
+          trackPlay({
+            track_id: currentTrackId,
+            track_title: track.title,
+            audio_version: audioVersion,
+          });
+        }
+      }
     } catch (err) {
       console.error('Playback error:', err);
       setError('Failed to play audio. Please try again.');
       setPlaybackState('paused');
     }
-  }, []);
+  }, [currentTrackId, audioVersion]);
 
   // ========== PAUSE ==========
   const pause = useCallback(() => {
@@ -183,7 +204,21 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
 
     audio.pause();
     setPlaybackState('paused');
-  }, []);
+
+    // Track pause event
+    if (currentTrackId && audio.duration > 0) {
+      const track = getTrackById(currentTrackId);
+      if (track) {
+        const percentComplete = Math.round((audio.currentTime / audio.duration) * 100);
+        trackPause({
+          track_id: currentTrackId,
+          track_title: track.title,
+          current_time: Math.round(audio.currentTime),
+          percent_complete: percentComplete,
+        });
+      }
+    }
+  }, [currentTrackId]);
 
   // ========== TOGGLE PLAY/PAUSE ==========
   const togglePlayPause = useCallback(() => {
@@ -197,7 +232,24 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
   // ========== NEXT TRACK ==========
   const nextTrack = useCallback(() => {
     if (currentTrackId === null) return;
-    
+
+    const audio = audioRef.current;
+
+    // Track skip if less than 30% played
+    if (audio && audio.duration > 0) {
+      const percentComplete = Math.round((audio.currentTime / audio.duration) * 100);
+      if (percentComplete < 30) {
+        const track = getTrackById(currentTrackId);
+        if (track) {
+          trackSkip({
+            track_id: currentTrackId,
+            track_title: track.title,
+            percent_complete: percentComplete,
+          });
+        }
+      }
+    }
+
     let nextId: number;
 
     if (isShuffled) {
@@ -216,7 +268,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     }
 
     loadTrack(nextId);
-    
+
     // Auto-play next track if currently playing
     if (playbackState === 'playing') {
       setTimeout(() => play(), 100);
@@ -262,7 +314,15 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     const clampedTime = Math.max(0, Math.min(time, audio.duration || 0));
     audio.currentTime = clampedTime;
     setCurrentTime(clampedTime);
-  }, []);
+
+    // Track seek event
+    if (currentTrackId && audio.duration > 0) {
+      trackSeek({
+        track_id: currentTrackId,
+        seek_to_percent: Math.round((clampedTime / audio.duration) * 100),
+      });
+    }
+  }, [currentTrackId]);
 
   // ========== SET VOLUME ==========
   const setVolume = useCallback((newVolume: number) => {
@@ -341,7 +401,13 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     const audio = audioRef.current;
     const track = currentTrackId ? getTrackById(currentTrackId) : null;
 
-    if (!audio || !track) return;
+    if (!audio || !track || !currentTrackId) return;
+
+    // Track version toggle
+    trackVersionToggle({
+      track_id: currentTrackId,
+      new_version: newVersion,
+    });
 
     // Save current playback state
     const wasPlaying = playbackState === 'playing';
@@ -396,6 +462,18 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
 
     // Track ended
     const handleEnded = () => {
+      // Track completion event
+      if (currentTrackId) {
+        const track = getTrackById(currentTrackId);
+        if (track) {
+          trackComplete({
+            track_id: currentTrackId,
+            track_title: track.title,
+            audio_version: audioVersion,
+          });
+        }
+      }
+
       if (repeatMode === 'one') {
         // Repeat current track
         if (audio) {
@@ -405,7 +483,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
       } else if (repeatMode === 'all' || repeatMode === 'off') {
         // Advance to next track (will loop with 'all', stop at end with 'off')
         setPlaybackState('paused');
-        
+
         // Check if we're at the last track with repeat off
         if (repeatMode === 'off' && !isShuffled) {
           const isLastTrack = currentTrackId === FOUNDATION_ALBUM.tracks[FOUNDATION_ALBUM.tracks.length - 1].id;
@@ -414,7 +492,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
             return;
           }
         }
-        
+
         nextTrack();
       }
     };
@@ -422,8 +500,17 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
     // Error handling
     const handleError = () => {
       console.error('Audio error:', audio.error);
-      setError(audio.error?.message || 'Failed to load audio file');
+      const errorMessage = audio.error?.message || 'Failed to load audio file';
+      setError(errorMessage);
       setPlaybackState('stopped');
+
+      // Track audio error
+      if (currentTrackId) {
+        trackAudioError({
+          track_id: currentTrackId,
+          error_message: errorMessage,
+        });
+      }
     };
 
     // Attach listeners
@@ -441,7 +528,7 @@ export function useAudioPlayer(): UseAudioPlayerReturn {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('error', handleError);
     };
-  }, [nextTrack, playbackState, repeatMode, isShuffled, currentTrackId, play]);
+  }, [nextTrack, playbackState, repeatMode, isShuffled, currentTrackId, play, audioVersion]);
 
   // ========== LOAD FIRST TRACK ON MOUNT ==========
   useEffect(() => {

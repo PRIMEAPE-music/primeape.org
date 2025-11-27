@@ -90,9 +90,13 @@ export interface SelectedProductOptions {
 }
 
 // ============================================================================
-// ANALYTICS TYPES (for Phase 11)
+// ANALYTICS TYPES (Phase 11)
 // ============================================================================
 
+// Re-export all analytics types from dedicated file
+export * from './analytics';
+
+// Legacy types (kept for backwards compatibility)
 export interface PlayEvent {
   trackId: number;
   timestamp: number;

@@ -17,7 +17,7 @@ interface ShowsSectionProps {
 
 const ShowsSection: React.FC<ShowsSectionProps> = ({ onBookMeClick }) => {
   return (
-    <section className="shows-section" aria-labelledby="shows-heading">
+    <section id="shows" className="shows-section" aria-labelledby="shows-heading">
       <div className="shows-section__container">
         <h2 id="shows-heading" className="shows-section__title">
           Shows

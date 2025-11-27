@@ -95,7 +95,7 @@ const MerchSection: React.FC = () => {
   };
 
   return (
-    <section className="merch-section" aria-labelledby="merch-heading">
+    <section id="merch" className="merch-section" aria-labelledby="merch-heading">
       <div className="merch-section__container">
         {/* Section Header */}
         <div className="merch-section__header">

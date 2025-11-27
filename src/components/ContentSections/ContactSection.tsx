@@ -1,6 +1,7 @@
 import React, { useState, forwardRef } from 'react';
 import type { ContactFormTab, FormSubmissionState, ContactFormData } from '../../types';
 import './ContactSection.css';
+import { trackContactSubmit } from '@/utils/analytics';
 
 /**
  * ContactSection Component
@@ -78,6 +79,10 @@ const ContactSection = forwardRef<HTMLElement, ContactSectionProps>(
 
         if (response.ok) {
           setSubmissionState('success');
+
+          // Track successful submission
+          trackContactSubmit({ form_type: activeTab });
+
           // Reset form
           setFormData({
             name: '',
@@ -101,6 +106,7 @@ const ContactSection = forwardRef<HTMLElement, ContactSectionProps>(
 
     return (
       <section
+        id="contact"
         ref={ref}
         className="contact-section"
         aria-labelledby="contact-heading"

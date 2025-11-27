@@ -40,6 +40,38 @@
     <!-- Preconnect for performance (if using external fonts later) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
 
+    <!-- Google Analytics 4 (Production Only) -->
+    <script>
+      // Only load GA4 in production
+      if (window.location.hostname !== 'localhost' &&
+          window.location.hostname !== '127.0.0.1' &&
+          !window.location.hostname.includes('netlify.app')) {
+        // Load gtag.js
+        var script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-7SZ64PPTWR';
+        document.head.appendChild(script);
+
+        // Initialize dataLayer and gtag
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-7SZ64PPTWR', {
+          send_page_view: true,
+          cookie_flags: 'SameSite=None;Secure'
+        });
+
+        // Make gtag globally available
+        window.gtag = gtag;
+      } else {
+        // Development mode - create no-op gtag
+        window.dataLayer = [];
+        window.gtag = function() {
+          console.log('[GA4 Dev]', arguments);
+        };
+      }
+    </script>
+
     <!-- Structured Data for Rich Search Results -->
     <script type="application/ld+json">
     {

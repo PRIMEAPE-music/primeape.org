@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import Layout from './components/Layout/Layout';
 import PlayerSection from './components/PlayerSection/PlayerSection';
 import ContentSections from './components/ContentSections/ContentSections';
 import './styles/global.css';
+import { trackSectionView, initializeAnalytics } from '@/utils/analytics';
 
 /**
  * App Component
@@ -33,6 +34,44 @@ const App: React.FC = () => {
 
   // Ref to store the Player's track selection handler
   const trackSelectHandlerRef = React.useRef<((trackId: number) => void) | null>(null);
+
+  // Track which sections have been viewed (prevent duplicate events)
+  const viewedSectionsRef = useRef<Set<string>>(new Set());
+
+  // Initialize analytics on mount
+  useEffect(() => {
+    initializeAnalytics();
+  }, []);
+
+  // Set up Intersection Observer for section tracking
+  useEffect(() => {
+    const sectionIds = ['merch', 'shows', 'contact'];
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const sectionName = entry.target.id;
+            if (sectionName && !viewedSectionsRef.current.has(sectionName)) {
+              viewedSectionsRef.current.add(sectionName);
+              trackSectionView({ section_name: sectionName });
+            }
+          }
+        });
+      },
+      { threshold: 0.3 } // Trigger when 30% visible
+    );
+
+    // Observe all section elements
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        observer.observe(element);
+      }
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Callback for track selection from mobile tracklist
   const handleTrackSelect = React.useCallback((trackId: number) => {

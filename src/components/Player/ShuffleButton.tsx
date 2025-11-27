@@ -1,5 +1,6 @@
 import React from 'react';
 import './ShuffleButton.css';
+import { trackShuffleToggle } from '@/utils/analytics';
 
 interface ShuffleButtonProps {
   isShuffled: boolean;
@@ -19,10 +20,16 @@ const ShuffleButton: React.FC<ShuffleButtonProps> = ({
   isShuffled,
   onToggle,
 }) => {
+  const handleClick = () => {
+    onToggle();
+    // Track with the NEW state (after toggle)
+    trackShuffleToggle({ enabled: !isShuffled });
+  };
+
   return (
     <button
       className={`shuffle-button ${isShuffled ? 'shuffle-button--active' : ''}`}
-      onClick={onToggle}
+      onClick={handleClick}
       aria-label={isShuffled ? 'Disable shuffle' : 'Enable shuffle'}
       title={isShuffled ? 'Shuffle: On' : 'Shuffle: Off'}
     >

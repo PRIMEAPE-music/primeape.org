@@ -18,7 +18,7 @@ const Footer: React.FC = () => {
         <p className="footer__copyright">
           © {currentYear} PRIMEAPE. All rights reserved.
         </p>
-        <p className="footer__credits">Website built with React & TypeScript</p>
+        <p className="footer__credits">This site uses analytics</p>
       </div>
     </footer>
   );

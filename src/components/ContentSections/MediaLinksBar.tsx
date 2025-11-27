@@ -1,5 +1,6 @@
 import React from 'react';
 import './MediaLinksBar.css';
+import { trackSocialClick } from '@/utils/analytics';
 
 interface PlatformLink {
   id: string;
@@ -103,6 +104,7 @@ function MediaLinksBar() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={platform.ariaLabel}
+              onClick={() => trackSocialClick({ platform: platform.id })}
             >
               <span className="media-links__icon" aria-hidden="true">
                 {getIcon(platform.id)}
