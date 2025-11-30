@@ -1,5 +1,6 @@
 .download-vocal {
   position: relative;
+  flex-shrink: 0;
 }
 
 .download-vocal__button {
@@ -128,7 +129,7 @@
   }
 
   .download-vocal__dropdown {
-    right: -50%;
+    right: 0; /* Align to button edge instead of offset */
     min-width: 160px;
   }
 }

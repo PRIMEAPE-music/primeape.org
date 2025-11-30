@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { loadLRC, ParsedLRC } from '@/utils/lrcParser';
 import type { LyricsDisplayState } from '@/types';
 import { trackLyricsToggle } from '@/utils/analytics';
@@ -13,9 +13,9 @@ interface UseLyricsReturn {
 
 /**
  * useLyrics Hook
- * 
+ *
  * Manages lyrics loading and display state
- * 
+ *
  * @param lyricsUrl - URL to LRC file
  * @returns Lyrics data and display state management
  */
@@ -23,7 +23,8 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
   const [lyrics, setLyrics] = useState<ParsedLRC | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+  const isInitialMount = useRef(true);
+
   // Load display state from localStorage
   const [displayState, setDisplayState] = useState<LyricsDisplayState>(() => {
     const saved = localStorage.getItem('primeape_lyrics_display');
@@ -31,6 +32,28 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
     if (saved) return saved as LyricsDisplayState;
     return window.innerWidth >= 1100 ? 'panel' : 'hidden';
   });
+
+  // Persist display state and track analytics when it changes (not on initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
+    // Save to localStorage
+    try {
+      localStorage.setItem('primeape_lyrics_display', displayState);
+    } catch (e) {
+      console.warn('Failed to save lyrics display state to localStorage:', e);
+    }
+
+    // Track analytics (wrapped in try-catch to prevent any errors from affecting UI)
+    try {
+      trackLyricsToggle({ new_state: displayState });
+    } catch (e) {
+      console.warn('Failed to track lyrics toggle:', e);
+    }
+  }, [displayState]);
 
   // Load lyrics when URL changes
   useEffect(() => {
@@ -82,36 +105,18 @@ export function useLyrics(lyricsUrl: string | null): UseLyricsReturn {
   // Mobile (<1100px): hidden → panel → integrated → hidden
   const toggleDisplayState = () => {
     setDisplayState(prev => {
-      let next: LyricsDisplayState;
-      
       // Check if we're on desktop or mobile
       const isDesktop = window.innerWidth >= 1100;
-      
+
       if (isDesktop) {
         // Desktop: toggle between panel and integrated (no hidden)
-        if (prev === 'panel') {
-          next = 'integrated';
-        } else {
-          next = 'panel';
-        }
+        return prev === 'panel' ? 'integrated' : 'panel';
       } else {
         // Mobile: cycle through all three states
-        if (prev === 'hidden') {
-          next = 'panel';
-        } else if (prev === 'panel') {
-          next = 'integrated';
-        } else {
-          next = 'hidden';
-        }
+        if (prev === 'hidden') return 'panel';
+        if (prev === 'panel') return 'integrated';
+        return 'hidden';
       }
-
-      // Save to localStorage
-      localStorage.setItem('primeape_lyrics_display', next);
-
-      // Track lyrics toggle
-      trackLyricsToggle({ new_state: next });
-
-      return next;
     });
   };
 

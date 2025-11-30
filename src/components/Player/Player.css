@@ -41,9 +41,11 @@
 @media (max-width: 768px) {
   .player__secondary-controls {
     gap: var(--space-xs); /* Smaller gap for mobile */
+    width: 100%;
     max-width: 100%; /* Allow full width on mobile */
-    padding: var(--space-xs) 0; /* Keep vertical padding only */
-    justify-content: space-evenly; /* Distribute evenly with equal space around each item */
+    padding: var(--space-xs) var(--space-sm); /* Add horizontal padding to prevent edge cutoff */
+    justify-content: center; /* Center items */
+    flex-wrap: wrap; /* Allow wrapping on very small screens */
   }
 }
 

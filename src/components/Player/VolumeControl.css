@@ -5,6 +5,7 @@
   padding: var(--space-sm) 0;
   max-width: 200px;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .volume-control__button {
@@ -110,11 +111,12 @@
 /* Mobile adjustments */
 @media (max-width: 768px) {
   .volume-control {
-    max-width: 160px;
+    max-width: 130px;
+    gap: var(--space-xs);
   }
 
   .volume-control__slider {
-    min-width: 60px;
+    min-width: 50px;
   }
 
   .volume-control__track {
@@ -124,5 +126,16 @@
   .volume-control__thumb {
     width: 12px;
     height: 12px;
+  }
+
+  .volume-control__percentage {
+    display: none; /* Hide percentage text on mobile to save space */
+  }
+}
+
+/* Very small screens - minimal volume control */
+@media (max-width: 380px) {
+  .volume-control__slider {
+    min-width: 40px;
   }
 }

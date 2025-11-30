@@ -11,6 +11,7 @@
   cursor: pointer;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .equalizer-toggle:hover {
